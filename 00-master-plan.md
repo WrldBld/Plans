@@ -561,12 +561,12 @@ Player/
 - [ ] Unit movement and pathfinding
 - [ ] Turn order system
 
-## Phase 8: ComfyUI Asset Generation 🔄 IN PROGRESS
+## Phase 8: ComfyUI Asset Generation ✅ COMPLETED
 **Details:** `plans/11-director-creation-ui.md`, `plans/12-workflow-settings.md`
 - [x] Workflow templates (Engine: WorkflowConfiguration entity, 9 workflow slots)
 - [x] Generation queue (Engine: GenerationBatch, ComfyUIClient, REST + WebSocket APIs)
-- [ ] Asset preview and selection UI (Player: UI exists, needs API wiring)
-- [ ] Style reference system
+- [x] Asset preview and selection UI (Player: AssetGallery with activate/delete)
+- [ ] Style reference system (deferred)
 
 ## Phase 9: Save/Load System
 - [ ] Save file format definition

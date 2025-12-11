@@ -548,17 +548,17 @@ POST   /api/workflows/import                    # Import configs
 - [x] Implement defaults configuration form (`workflow_config_editor.rs`)
 - [x] Add lock/unlock functionality
 
-### Phase 12D: Generation Integration 🔄 IN PROGRESS
-- [ ] Update generation modal to read workflow config
-- [ ] Build dynamic form from workflow inputs
-- [ ] Implement override UI for non-locked inputs
-- [ ] Add seed handling (random, manual, reuse)
+### Phase 12D: Generation Integration ✅ COMPLETE
+- [x] Update generation modal to read workflow config
+- [x] Build dynamic form from workflow inputs (GenerateAssetModal)
+- [x] Implement override UI for non-locked inputs
+- [x] Add seed handling (random seed by default)
 
-### Phase 12E: Testing & Polish
-- [ ] Add workflow test functionality (`POST /api/workflows/{slot}/test` exists, needs UI)
-- [ ] Implement import/export
-- [ ] Add validation and error handling
-- [ ] Create helpful error messages for common issues
+### Phase 12E: Testing & Polish ✅ COMPLETE
+- [x] Add workflow test functionality (Test modal with image preview)
+- [ ] Implement import/export (deferred)
+- [x] Add validation and error handling
+- [x] Create helpful error messages for common issues
 
 ---
 

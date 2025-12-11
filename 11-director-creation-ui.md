@@ -780,32 +780,32 @@ Engine/src/infrastructure/
 - [x] WebSocket events for generation progress/completion
 - [x] REST endpoints: `/api/assets/generate`, `/api/assets/queue`
 
-### Phase 11C: Creator Mode UI (Player) 🔄 IN PROGRESS
+### Phase 11C: Creator Mode UI (Player) ✅ COMPLETE
 **Priority: High** - Main user-facing feature
 
 - [x] Add tabbed navigation to `dm_view.rs` (Director/Creator/Settings)
-- [x] Create `EntityBrowser` component (tree view) - UI done, **needs API integration**
-- [x] Create `CharacterForm` component with all fields - UI done, **needs API integration**
-- [x] Create `LocationForm` component with connections - UI done, **needs API integration**
-- [ ] Create `ItemForm` component
-- [x] Create `AssetGallery` component - UI done, **needs API integration**
+- [x] Create `EntityBrowser` component (tree view) with REST API integration
+- [x] Create `CharacterForm` component with all fields and API save/load
+- [x] Create `LocationForm` component with connections and API save/load
+- [ ] Create `ItemForm` component (deferred)
+- [x] Create `AssetGallery` component with API integration (fetch, activate, delete)
 
-### Phase 11D: Generation UI (Player) 🔄 IN PROGRESS
+### Phase 11D: Generation UI (Player) ✅ COMPLETE
 **Priority: Medium** - Asset generation interface
 
 - [x] Create `GenerationQueuePanel` component
-- [ ] Create `GenerationRequestModal` (configure generation)
-- [ ] Create `AssetSelectionModal` (pick from variations)
+- [x] Create `GenerateAssetModal` (configure generation) - integrated in AssetGallery
+- [x] Asset selection via context menu (activate/delete)
 - [x] WebSocket integration for real-time queue updates (GenerationState)
-- [ ] Toast notifications for completed batches
+- [ ] Toast notifications for completed batches (deferred to polish)
 
-### Phase 11E: LLM Suggestion Integration (Player + Engine) 🔄 IN PROGRESS
+### Phase 11E: LLM Suggestion Integration (Player + Engine) ✅ COMPLETE
 **Priority: Medium** - AI-assisted creation
 
-- [x] Create `SuggestionButton` reusable component - UI done, **needs API integration**
+- [x] Create `SuggestionButton` reusable component with dropdown
 - [x] Add suggestion endpoints to Engine: `/api/suggest/character-name`, etc.
 - [x] Implement prompt templates for each suggestion type
-- [ ] Dropdown UI for selecting from multiple suggestions
+- [x] Dropdown UI for selecting from multiple suggestions
 
 ### Phase 11F: Map Editor (Player)
 **Priority: Lower** - Grid map creation
