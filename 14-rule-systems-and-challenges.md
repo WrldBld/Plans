@@ -193,7 +193,7 @@ pub enum FieldType {
 - All required fields must be filled
 - Derived values auto-calculate
 - Skills show with their base values
-- Can use LLM to suggest stat distributions
+- Can use LLM to suggest stat distributions (requests appear in [Unified Generation Queue](./15-unified-generation-queue.md))
 - Character saved with all sheet data
 
 ---
@@ -386,6 +386,8 @@ Trigger: "Player succeeds at History check on the statue"
 
 ### Epic: LLM Scene Analysis
 
+> **Queue Integration**: All LLM-generated decisions (NPC responses, tool usage, challenge suggestions) flow through the [Director Decision Queue](./16-director-decision-queue.md), providing the DM with complete visibility and control over AI decision-making during gameplay.
+
 #### US-14.14: LLM Suggests Challenge Opportunity
 **As a** Dungeon Master
 **I want** the LLM to recognize when a challenge might be relevant
@@ -394,10 +396,10 @@ Trigger: "Player succeeds at History check on the statue"
 **Acceptance Criteria:**
 - LLM monitors player actions and dialogue
 - When trigger conditions match, LLM suggests challenge
-- Suggestion appears in DM approval queue:
+- Suggestion appears in [Director Decision Queue](./16-director-decision-queue.md):
   - "Player is examining the ancient statue. Trigger History check?"
-  - Shows challenge details
-  - DM can: Approve / Reject / Modify
+  - Shows challenge details with AI reasoning
+  - DM can: Approve / Reject / Modify / Delay
 - Approved challenges prompt the player for a roll
 
 **LLM Integration:**
@@ -432,19 +434,23 @@ pub struct ChallengeSuggestion {
 **I want to** approve or reject LLM challenge suggestions
 **So that** I control the pacing and difficulty
 
+> **UI Reference**: See [Director Decision Queue mockups](./16-director-decision-queue.md#expanded-decision-detail---challenge-suggestion) for the challenge approval interface.
+
 **Acceptance Criteria:**
-- Challenge suggestion appears in approval panel
+- Challenge suggestion appears in Decision Queue panel
 - Shows:
   - Challenge name and skill
-  - Why LLM thinks it's relevant
-  - Difficulty
-  - Potential outcomes
+  - Why LLM thinks it's relevant (AI reasoning)
+  - Difficulty and target number
+  - Potential outcomes (success/failure)
+  - Confidence indicator
 - DM options:
   - **Approve**: Trigger the challenge
   - **Reject**: Continue without check
-  - **Modify**: Change difficulty or skill
-  - **Delay**: "Not yet, but remember this"
-- Rejected challenges don't repeat immediately
+  - **Modify**: Change difficulty or skill before approval
+  - **Delay**: "Not yet, but remember this" (with optional expiry)
+- Rejected challenges logged to history
+- Keyboard shortcuts for quick actions (Enter=Approve, Esc=Reject)
 
 ---
 
@@ -610,41 +616,44 @@ pub struct ChallengeSuggestion {
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Director Mode - Challenge Panel
+### Director Mode - With Decision Queue
+
+> **Note**: Full Decision Queue UI mockups are in [Phase 16: Director Decision Queue](./16-director-decision-queue.md).
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  DIRECTOR MODE                                           [Director] [Creator] [Settings]
-├────────────────────────────────────────────────┬────────────────────────────┤
-│                                                │                            │
-│  SCENE: The Dusty Library                      │  CHALLENGES                │
-│  ────────────────────────────────────────────  │  ────────────────────────  │
-│                                                │                            │
-│  [Scene preview area]                          │  Scene Challenges:         │
-│                                                │  ┌──────────────────────┐  │
-│                                                │  │ 📚 Research the Tome │  │
-│  CONVERSATION LOG                              │  │ Library Use • Hard   │  │
-│  ────────────────────────────────────────────  │  │ [Trigger] [Edit] [×] │  │
-│                                                │  └──────────────────────┘  │
-│  Player: "I want to examine the old books     │  ┌──────────────────────┐  │
-│  on that shelf."                               │  │ 🔍 Notice Hidden Door│  │
-│                                                │  │ Spot Hidden • Medium │  │
-│  ┌────────────────────────────────────────┐   │  │ Requires: Research ✓ │  │
-│  │ 🤖 LLM SUGGESTION                      │   │  │ [Trigger] [Edit] [×] │  │
-│  │                                        │   │  └──────────────────────┘  │
-│  │ Player examining books - Library Use   │   │                            │
-│  │ check to find useful information?      │   │  [+ Add Challenge]         │
-│  │                                        │   │                            │
-│  │ Challenge: "Research the Tome"         │   │  ────────────────────────  │
-│  │ Difficulty: Hard (skill/2)             │   │  QUICK CHALLENGES          │
-│  │                                        │   │                            │
-│  │ [Approve ✓] [Modify ✏️] [Reject ✗]     │   │  [Spot Hidden]             │
-│  └────────────────────────────────────────┘   │  [Listen]                  │
-│                                                │  [Psychology]              │
-│  NPC Responses awaiting approval: 0            │  [Fast Talk]               │
-│                                                │  [+ More...]               │
-│                                                │                            │
-└────────────────────────────────────────────────┴────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────────────────────────┐
+│  DIRECTOR MODE                                           [Director] [Creator] [Settings]  │
+├─────────────────────────────────────────────────────┬─────────────────────────────────────┤
+│                                                     │                                     │
+│  SCENE: The Dusty Library                           │  DECISION QUEUE              [3]   │
+│  ─────────────────────────────────────────────────  │  ─────────────────────────────────  │
+│                                                     │                                     │
+│  [Scene preview area]                               │  [All] [💬] [🔧] [🎲] [→]           │
+│                                                     │                                     │
+│                                                     │  ┌─────────────────────────────┐   │
+│  CONVERSATION LOG                                   │  │ 💬 Jasper's Response        │   │
+│  ─────────────────────────────────────────────────  │  │ "The tome? Dangerous..."    │   │
+│                                                     │  │ ⏱ 15s  ●●●○○                │   │
+│  Player: "I want to examine the old books          │  │ [✓] [✗] [✏️] [⏰]            │   │
+│  on that shelf."                                    │  └─────────────────────────────┘   │
+│                                                     │                                     │
+│  [Waiting for DM approval...]                       │  ┌─────────────────────────────┐   │
+│                                                     │  │ 🎲 Challenge Suggested      │   │
+│                                                     │  │ Library Use (Hard)          │   │
+│  ─────────────────────────────────────────────────  │  │ ⏱ 8s   ●●●●○                │   │
+│  DIRECTORIAL CONTROLS                               │  │ [✓] [✗] [✏️] [⏰]            │   │
+│  Tone: [Mysterious ▼]  Pacing: [Slow ▼]            │  └─────────────────────────────┘   │
+│  Active NPCs: Jasper                                │                                     │
+│                                                     │  ┌─────────────────────────────┐   │
+│  ─────────────────────────────────────────────────  │  │ 🔧 RevealInfo               │   │
+│  SCENE CHALLENGES                                   │  │ "Map hidden in binding"     │   │
+│  ┌──────────────────────┐ ┌──────────────────────┐ │  │ ⏱ 5s   ●●○○○                │   │
+│  │ 📚 Research the Tome │ │ 🔍 Notice Door       │ │  │ [✓] [✗] [✏️] [⏰]            │   │
+│  │ Library Use • Hard   │ │ Spot Hidden • Med    │ │  └─────────────────────────────┘   │
+│  │ [Trigger] [Edit]     │ │ Requires: Research   │ │                                     │
+│  └──────────────────────┘ └──────────────────────┘ │  [Approve All Safe]                 │
+│                                                     │                                     │
+└─────────────────────────────────────────────────────┴─────────────────────────────────────┘
 ```
 
 ### Challenge Creation Modal

@@ -171,6 +171,8 @@ Generate entire entities at once with all fields populated.
 
 ## Design Decision 4: Asset Generation UI
 
+> **Note**: This generation queue will be unified with LLM suggestions in [Phase 15: Unified Generation Queue](./15-unified-generation-queue.md). Both image generation and text suggestions will appear in the same queue panel.
+
 ### SELECTED: Hybrid Queue + Selection Modal
 
 **Flow:**
@@ -262,9 +264,14 @@ This enables:
 
 ### Creator Mode - Main View
 
+> **Note**: The Generation Queue shows both image generation (ComfyUI) and LLM suggestions. See [Phase 15: Unified Generation Queue](./15-unified-generation-queue.md) for details.
+
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  [Director Mode]  [Creator Mode]                                   [← Back] │
+│                       ┌───┐                                                 │
+│                       │ 3 │ ← Generation queue badge                       │
+│                       └───┘                                                 │
 ├───────────────────────────────────────────┬─────────────────────────────────┤
 │                                           │  ENTITY BROWSER                 │
 │  ┌─ Quick Create ───────────────────────┐ │                                 │
@@ -280,20 +287,24 @@ This enables:
 │  │  [                              ]    │ │    ├─ Kitchen                   │
 │  │  [Ask AI]                            │ │    └─ Cellar                    │
 │  │                                      │ │  ▶ Town Square                  │
-│  │  Recent Suggestions:                 │ │  ▶ Forest Path                  │
-│  │  • "A corrupt city guard who..."     │ │                                 │
-│  │  • "An ancient library hidden..."    │ │  ─────────────────────────────  │
-│  │                                      │ │  GENERATION QUEUE               │
-│  └──────────────────────────────────────┘ │  ✓ Bartender Portrait    [View] │
-│                                           │  ⏳ Tavern Backdrop       [45%] │
-│  ┌─ Preview / Editor ───────────────────┐ │                                 │
-│  │                                      │ │  ─────────────────────────────  │
-│  │  (Selected entity details here)      │ │  RECENT ACTIVITY                │
-│  │                                      │ │  • Created "Guard Captain"      │
-│  │                                      │ │  • Modified "Town Square"       │
-│  │                                      │ │  • Generated backdrop           │
+│  └──────────────────────────────────────┘ │  ▶ Forest Path                  │
+│                                           │                                 │
+│  ┌─ Preview / Editor ───────────────────┐ │  ─────────────────────────────  │
+│  │                                      │ │  GENERATION QUEUE          [3]  │
+│  │  (Selected entity details here)      │ │  [All] [🖼️ Images] [💬 Text]    │
 │  │                                      │ │                                 │
-│  └──────────────────────────────────────┘ │                                 │
+│  │                                      │ │  ┌───────────────────────────┐  │
+│  │                                      │ │  │ 🖼️ Bartender Portrait     │  │
+│  │                                      │ │  │    ✓ Ready        [View]  │  │
+│  │                                      │ │  └───────────────────────────┘  │
+│  │                                      │ │  ┌───────────────────────────┐  │
+│  │                                      │ │  │ 🖼️ Tavern Backdrop        │  │
+│  │                                      │ │  │    ⏳ 45%         [░░██░] │  │
+│  │                                      │ │  └───────────────────────────┘  │
+│  │                                      │ │  ┌───────────────────────────┐  │
+│  │                                      │ │  │ 💬 Character Names        │  │
+│  │                                      │ │  │    ⏳ Generating...       │  │
+│  └──────────────────────────────────────┘ │  └───────────────────────────┘  │
 └───────────────────────────────────────────┴─────────────────────────────────┘
 ```
 
@@ -737,10 +748,12 @@ Engine/src/infrastructure/
 
 ### Key Features
 
-1. **Background Generation Queue**
+1. **Unified Generation Queue** (see [Phase 15](./15-unified-generation-queue.md))
+   - Both image generation AND LLM suggestions appear in the same queue
    - Assets generate in background, user continues working
    - Notifications when batches complete
    - Selection modal or return to entity form to choose
+   - Consistent UX for all AI-assisted generation
 
 2. **Asset Gallery per Entity**
    - All generated/uploaded assets preserved
@@ -750,6 +763,7 @@ Engine/src/infrastructure/
 
 3. **LLM-Assisted Creation**
    - Inline suggest buttons for names, descriptions, motivations
+   - Suggestions appear in unified queue alongside image generation
    - Generate entire want lists from archetype
    - Suggest logical location connections
 
@@ -801,6 +815,8 @@ Engine/src/infrastructure/
 
 ### Phase 11E: LLM Suggestion Integration (Player + Engine) ✅ COMPLETE
 **Priority: Medium** - AI-assisted creation
+
+> **Future Enhancement**: Suggestion requests will be migrated to the unified generation queue in [Phase 15](./15-unified-generation-queue.md). This will provide real-time progress visibility and consistent UX with image generation.
 
 - [x] Create `SuggestionButton` reusable component with dropdown
 - [x] Add suggestion endpoints to Engine: `/api/suggest/character-name`, etc.

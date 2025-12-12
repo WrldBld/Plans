@@ -3,7 +3,7 @@
 This document tracks all remaining work identified during the codebase analysis. Sub-agents should use this to understand context, track progress, and coordinate implementation.
 
 **Last Updated**: 2025-12-12
-**Overall Progress**: ~93% complete (Tier 1 + Tier 2 Complete, Phase 13 complete, Phase 14A + 14B complete, Phase 14C backend complete)
+**Overall Progress**: ~97% complete (Tier 1 + Tier 2 Complete, Phase 13 complete, Phase 14 complete, Phase 17 planned)
 
 ---
 
@@ -45,6 +45,7 @@ This document tracks all remaining work identified during the codebase analysis.
 - World Selection Flow (Player) - Phase 13
 - Rule Systems & Challenges (Both) - Phase 14
 - Routing & Navigation (Player) - Phase 15
+- Story Arc (Both) - Phase 17
 
 ### Tier 5: Future Features
 - Tactical Combat (Both)
@@ -803,17 +804,20 @@ Director Mode: LLM suggests challenge → DM approves → Resolution → Narrati
   - TriggerType: ObjectInteraction, EnterArea, DialogueTopic, ChallengeComplete, TimeBased, NpcPresent, Custom
   - Basic keyword matching for trigger evaluation
 
-- [ ] **4.2.15** Challenge library UI
-  - File: `Player/src/presentation/components/director/challenge_library.rs` (new)
-  - Browse by type and skill
-  - Quick filter/search
-  - Favorites section
+- [✅] **4.2.15** Challenge library UI (2025-12-12)
+  - File: `Player/src/presentation/components/dm_panel/challenge_library.rs` (new)
+  - Browse by type and skill with filtering
+  - Quick search across name/description/tags
+  - Favorites section with toggle
+  - Challenge cards grouped by type
+  - Active/inactive status toggle
 
-- [ ] **4.2.16** Challenge creation modal
-  - File: `Player/src/presentation/components/director/challenge_form.rs` (new)
-  - Name, skill, difficulty
+- [✅] **4.2.16** Challenge creation modal (2025-12-12)
+  - File: `Player/src/presentation/components/dm_panel/challenge_library.rs` (ChallengeFormModal)
+  - Name, description, skill selection, difficulty
   - Success/failure outcomes with triggers
-  - Trigger conditions builder
+  - Tags for organization
+  - Edit mode for existing challenges
 
 - [✅] **4.2.17** API: Challenge endpoints (2025-12-12)
   - File: `Engine/src/infrastructure/http/challenge_routes.rs` (new)
@@ -829,42 +833,57 @@ Director Mode: LLM suggests challenge → DM approves → Resolution → Narrati
 
 **Phase 14E: LLM Challenge Integration**
 
-- [ ] **4.2.18** Add challenges to LLM context
+- [✅] **4.2.18** Add challenges to LLM context (2025-12-12)
   - File: `Engine/src/application/services/llm_service.rs`
-  - Include active challenges with trigger conditions
-  - Scene description and player action
+  - Added `ActiveChallengeContext` struct with trigger hints
+  - Extended `GamePromptRequest` with `active_challenges` field
+  - System prompt includes "Active Challenges" section
+  - Instructs LLM to use `<challenge_suggestion>` XML tags
 
-- [ ] **4.2.19** LLM challenge suggestion
-  - File: `Engine/src/infrastructure/websocket.rs`
-  - Parse ChallengeSuggestion from LLM response
-  - Include reasoning and confidence
+- [✅] **4.2.19** LLM challenge suggestion parsing (2025-12-12)
+  - File: `Engine/src/application/services/llm_service.rs`
+  - `ChallengeSuggestion` struct with challenge_id, confidence, reasoning
+  - `SuggestionConfidence` enum (High, Medium, Low)
+  - `parse_response()` extracts challenge suggestions from LLM output
+  - WebSocket `ApprovalRequired` includes optional challenge suggestion
 
-- [ ] **4.2.20** Challenge suggestion approval UI
-  - File: `Player/src/presentation/views/dm_view.rs`
-  - Challenge suggestion in approval panel
-  - Approve/Reject/Modify/Delay options
+- [✅] **4.2.20** Challenge suggestion approval UI (2025-12-12)
+  - File: `Player/src/presentation/components/dm_panel/approval_popup.rs`
+  - Challenge suggestion section with amber styling
+  - Shows challenge name, skill, difficulty, confidence, reasoning
+  - "Approve Challenge" and "Skip Challenge" buttons
 
-- [ ] **4.2.21** Challenge resolution flow
-  - Roll interface with skill/modifier
-  - Dice animation
-  - Outcome display with triggers
-  - Log to conversation
+- [✅] **4.2.21** Challenge resolution flow (2025-12-12)
+  - File: `Player/src/presentation/components/tactical/challenge_roll.rs` (new)
+  - `ChallengeRollModal` with d20 roll interface
+  - Displays challenge name, skill, difficulty, character modifier
+  - Roll result breakdown (roll + modifier = total)
+  - Platform-specific random generation (WASM/native)
+  - WebSocket message types: `ChallengePrompt`, `ChallengeResolved`
 
-- [ ] **4.2.22** Manual challenge trigger
-  - "Trigger Challenge" button in Director panel
-  - Challenge picker or ad-hoc creation
+- [✅] **4.2.22** Manual challenge trigger (2025-12-12)
+  - File: `Player/src/presentation/components/dm_panel/trigger_challenge_modal.rs` (new)
+  - `TriggerChallengeModal` with challenge and character selection
+  - "Trigger Challenge" button in DM Quick Actions
+  - Filters to active challenges only
+  - WebSocket `TriggerChallenge` message type
 
 **Phase 14F: Player Experience**
 
-- [ ] **4.2.23** Player challenge prompt
+- [✅] **4.2.23** Player challenge prompt (2025-12-12)
   - File: `Player/src/presentation/views/pc_view.rs`
-  - Challenge notification with skill/difficulty
-  - Roll button
+  - WebSocket messages: `ChallengePrompt`, `ChallengeResolved`, `ChallengeRoll`
+  - `ChallengePromptData` and `ChallengeResultData` structs in session state
+  - `ChallengeRollModal` shown when active challenge exists
+  - `send_challenge_roll()` function sends roll result to Engine
 
-- [ ] **4.2.24** Player skill display
-  - Character sheet accessible in PC View
-  - Skills with modifiers
-  - Recently used highlighted
+- [✅] **4.2.24** Player skill display (2025-12-12)
+  - File: `Player/src/presentation/components/tactical/skills_display.rs` (new)
+  - `SkillsDisplay` component with skills grouped by category
+  - `PlayerSkillData` struct with modifier and proficiency
+  - Color-coded modifiers (green positive, red negative)
+  - Visual indicator for proficient skills (golden border)
+  - Session state `player_skills` signal
 
 ---
 
@@ -986,6 +1005,197 @@ Director Mode: LLM suggests challenge → DM approves → Resolution → Narrati
 - Desktop app handles URL scheme
 - Protected routes redirect properly
 - 404 page for invalid routes
+
+---
+
+### 4.4 Story Arc (Both) - Phase 17
+
+**Location**: Engine domain + Player views (new Story Arc tab)
+
+**Plan Document**: `plans/17-story-arc.md`
+
+**Context**: The Story Arc feature introduces two complementary systems:
+1. **StoryEvent (Past Events Timeline)** - Automatic logging of ALL gameplay events (dialogue, movement, combat, items, relationships)
+2. **NarrativeEvent (Future Events)** - Designer-defined events with triggers, outcomes, and branching chains
+
+**Architecture**:
+```
+Gameplay → StoryEvents logged automatically → Timeline View
+DM designs → NarrativeEvents with triggers → LLM detects conditions → DM approves → Event fires
+Events chain together → Branching storylines based on outcomes
+```
+
+**New Entities**:
+- `StoryEvent`: Immutable log of past gameplay events (13 event types)
+- `NarrativeEvent`: Future event hooks with triggers and outcomes
+- `EventChain`: Connected sequences of narrative events
+
+**UI Location**: New "Story Arc" tab (4th tab in DM View) + small widget in Director view showing relevant pending events
+
+**Phase 17A: Domain Foundation (Engine)**
+
+- [ ] **4.4.1** Add new ID types to ids.rs
+  - StoryEventId, NarrativeEventId, EventChainId
+
+- [ ] **4.4.2** Create StoryEvent entity
+  - File: `Engine/src/domain/entities/story_event.rs` (new)
+  - StoryEventType enum: LocationChange, DialogueExchange, CombatEvent, ChallengeAttempted, ItemAcquired, ItemTransferred, RelationshipChanged, SceneTransition, InformationRevealed, NpcAction, DmMarker, NarrativeEventTriggered, Custom
+
+- [ ] **4.4.3** Create NarrativeEvent entity
+  - File: `Engine/src/domain/entities/narrative_event.rs` (new)
+  - NarrativeTrigger with 14 trigger types (NpcAction, PlayerEntersLocation, DialogueTopic, ChallengeCompleted, RelationshipThreshold, HasItem, EventCompleted, FlagSet, etc.)
+  - TriggerLogic: All (AND), Any (OR), AtLeast(n)
+  - EventOutcome with conditions, effects, and chain links
+  - EventEffect enum: ModifyRelationship, GiveItem, TakeItem, RevealInformation, SetFlag, EnableChallenge, EnableEvent, TriggerScene, etc.
+
+- [ ] **4.4.4** Create EventChain entity
+  - File: `Engine/src/domain/entities/event_chain.rs` (new)
+  - Links NarrativeEvents in sequences with branching
+
+**Phase 17B: Story Events Backend (Engine)**
+
+- [ ] **4.4.5** Create Neo4jStoryEventRepository
+  - CRUD operations for story events
+  - Query by session, world, filters
+
+- [ ] **4.4.6** Create story_event_routes.rs
+  - GET /api/sessions/{id}/story-events (list with filters)
+  - POST /api/sessions/{id}/story-events (DM markers)
+  - PUT /api/story-events/{id} (update summary, hidden, tags)
+  - GET /api/worlds/{id}/story-events/search
+
+- [ ] **4.4.7** Wire StoryEvent creation into existing flows
+  - DialogueResponse → StoryEvent::DialogueExchange
+  - ChallengeResult → StoryEvent::ChallengeAttempted
+  - Tool execution → appropriate StoryEvent type
+  - Scene transitions, item transfers, relationship changes
+
+**Phase 17C: Narrative Events Backend (Engine)**
+
+- [ ] **4.4.8** Create Neo4jNarrativeEventRepository
+  - CRUD operations with trigger/outcome storage
+
+- [ ] **4.4.9** Create narrative_event_routes.rs
+  - GET/POST/PUT/DELETE for narrative events
+  - PUT /api/narrative-events/{id}/active (toggle)
+  - PUT /api/narrative-events/{id}/favorite (toggle)
+  - POST /api/narrative-events/{id}/trigger (manual)
+  - POST /api/narrative-events/{id}/check-triggers
+
+- [ ] **4.4.10** Create event_chain_routes.rs
+  - CRUD for chains
+  - POST /api/event-chains/{id}/events (add to chain)
+  - DELETE /api/event-chains/{id}/events/{event_id}
+
+- [ ] **4.4.11** Create NarrativeEventService
+  - Trigger condition evaluation
+  - Outcome effect application
+
+**Phase 17D: LLM Integration (Engine)**
+
+- [ ] **4.4.12** Add narrative events to LLM context
+  - Include active events with trigger hints in system prompt
+  - Instruct LLM to output NARRATIVE_EVENT_TRIGGER: tags
+
+- [ ] **4.4.13** Parse event triggers from LLM responses
+  - Extract NARRATIVE_EVENT_TRIGGER and confidence
+  - Validate against actual trigger conditions
+
+- [ ] **4.4.14** WebSocket event suggestion flow
+  - EventTriggerSuggestion message to DM
+  - EventTriggerDecision message from DM (approve/delay/reject)
+  - NarrativeEventTriggered broadcast to all
+
+- [ ] **4.4.15** Custom trigger LLM evaluation
+  - For triggers marked llm_evaluation: true
+  - LLM determines if custom condition is met
+
+**Phase 17E: Story Arc Tab UI (Player)**
+
+- [ ] **4.4.16** Create StoryArcView component
+  - File: `Player/src/presentation/views/story_arc_view.rs` (new)
+  - Three sub-views: Timeline, Narrative Events, Event Chains
+  - Tab navigation within Story Arc
+
+- [ ] **4.4.17** Create TimelineView with event cards
+  - Vertical scrollable timeline
+  - Filter bar (event type, character, location, date range)
+  - Event cards with type icons, timestamps, summaries
+  - Click to expand details
+
+- [ ] **4.4.18** Create TimelineEventDetail modal
+  - Full event information
+  - Related characters, locations
+  - Edit summary (DM only)
+  - Toggle visibility
+
+- [ ] **4.4.19** Create AddDmMarker form
+  - Title, note, importance
+  - Optional location/character association
+
+**Phase 17F: Narrative Event UI (Player)**
+
+- [ ] **4.4.20** Create NarrativeEventLibrary view
+  - Grid/list with search and filters
+  - Status badges (Active, Triggered, Pending)
+  - Favorites section
+  - Quick actions (Edit, Trigger, Enable/Disable)
+
+- [ ] **4.4.21** Create NarrativeEventDesigner modal
+  - Name, description, scene direction fields
+  - Optional Act association dropdown
+
+- [ ] **4.4.22** Create TriggerConditionBuilder component
+  - Add/remove trigger conditions
+  - Trigger type dropdown with context-specific fields
+  - Logic selector (All/Any/AtLeast)
+
+- [ ] **4.4.23** Create OutcomeBuilder component
+  - Multiple outcome branches
+  - Condition for each outcome
+  - Effects list per outcome
+  - Chain event links
+
+- [ ] **4.4.24** Create EventTriggerApproval popup
+  - Shows suggested event with matching triggers
+  - Approve/Delay/Reject actions
+  - Confidence indicator
+
+**Phase 17G: Event Chains & Polish (Player)**
+
+- [ ] **4.4.25** Create EventChainVisualizer component
+  - Flowchart with nodes and connections
+  - Color coding for status (pending, triggered, completed)
+  - Click node to view/edit event
+  - Drag to reorder (optional)
+
+- [ ] **4.4.26** Create PendingEventsWidget for Director view
+  - 3-5 most relevant pending/triggered events
+  - Matching trigger count
+  - Quick approve/delay/reject
+  - "View in Story Arc" link
+
+- [ ] **4.4.27** Add Story Arc tab to DM View
+  - 4th tab after Director, Creator, Settings
+  - Icon and label
+
+- [ ] **4.4.28** Export/import functionality
+  - Export narrative events and chains as JSON
+  - Import with conflict resolution
+
+**Dependencies**:
+- Phase 14D (Challenge System) - Reuse TriggerCondition patterns
+- Existing LLM approval flow infrastructure
+
+**Acceptance Criteria**:
+- All gameplay events automatically logged to timeline
+- DM can filter, search, and annotate timeline
+- DM can design narrative events with complex triggers
+- LLM detects trigger conditions and suggests events
+- DM approves/rejects event triggers
+- Event chains visualized as flowcharts
+- Events branch based on outcome selection
+- Pending events widget shows relevant events in Director view
 
 ---
 
@@ -1207,3 +1417,7 @@ A task is complete when:
 | 2025-12-12 | Renamed IMPLEMENTATION_PLAN.md to ROADMAP.md for clarity. |
 | 2025-12-12 | **Phase 14C Backend Complete**: Character Sheet Templates. `sheet_template.rs` with comprehensive field type system (Number, Text, Checkbox, Select, SkillReference, Derived, Resource, ItemList, SkillList). Default templates for all 9 rule system variants with appropriate sections (D&D 5e has 6 sections including ability scores, modifiers, combat, skills, features, inventory). Neo4j repository stores templates as JSON. API routes for CRUD operations. Player-side types added. UI components (4.2.11, 4.2.12) pending. |
 | 2025-12-12 | **Phase 15 (Routing & Navigation) Added**: Comprehensive plan for Dioxus Router integration. 15 tasks across 5 sub-phases: Basic Router Setup (15A), Route Guards & Navigation (15B), Web History Integration (15C), Desktop URL Scheme (15D), Mobile Deep Linking (15E). URL structure: `/`, `/roles`, `/worlds`, `/worlds/:world_id/dm\|play\|watch`. Detailed plan in `plans/14-routing-navigation.md`. |
+| 2025-12-12 | **Phase 14D Complete**: Challenge System Core. Challenge entity with ChallengeType (SkillCheck, AbilityCheck, SavingThrow, OpposedCheck, ComplexChallenge), Difficulty (DC, Percentage, Descriptor, Opposed, Custom), ChallengeOutcomes, OutcomeTrigger, TriggerCondition. Neo4jChallengeRepository with CRUD operations. REST API endpoints (list, get, create, update, delete, toggle favorite, set active). ChallengeLibrary UI component with search, filtering by type/favorites/active, challenge cards grouped by type, and ChallengeFormModal for create/edit. Integrated into DM View with "Manage Challenges" button. |
+| 2025-12-12 | **Phase 14E Complete**: LLM Challenge Integration. `ActiveChallengeContext` added to LLM prompts with trigger hints. LLM outputs `<challenge_suggestion>` tags parsed into `ChallengeSuggestion` (challenge_id, confidence, reasoning). ApprovalPopup shows challenge suggestions with amber styling. `ChallengeRollModal` for d20 rolls with modifier calculation and platform-specific random generation. `TriggerChallengeModal` for manual challenge triggering. WebSocket message types: `ChallengePrompt`, `ChallengeResolved`, `ChallengeRoll`, `TriggerChallenge`, `ChallengeSuggestionDecision`. |
+| 2025-12-12 | **Phase 14F Complete**: Player Experience. Player-side WebSocket messages for `ChallengePrompt`, `ChallengeResolved`, `ChallengeRoll`. Session state extended with `active_challenge`, `challenge_results`, `player_skills` signals. PC View shows `ChallengeRollModal` when challenge is active, sends roll via `send_challenge_roll()`. New `SkillsDisplay` component groups skills by category with color-coded modifiers and proficiency indicators. Phase 14 (Rule Systems & Challenges) is now complete! |
+| 2025-12-12 | **Phase 17 (Story Arc) Added**: Comprehensive plan for past events timeline and future narrative events system. 28 tasks across 7 sub-phases: Domain Foundation (17A), Story Events Backend (17B), Narrative Events Backend (17C), LLM Integration (17D), Story Arc Tab UI (17E), Narrative Event UI (17F), Event Chains & Polish (17G). New entities: StoryEvent (13 event types), NarrativeEvent (14 trigger types, branching outcomes), EventChain. New UI: Story Arc tab (4th DM tab), Timeline view, Narrative Event Designer, Event Chain Visualizer, Pending Events Widget. Detailed plan in `plans/17-story-arc.md`. |

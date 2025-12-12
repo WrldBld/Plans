@@ -148,10 +148,13 @@ The API format structure:
 **I want to** test my workflow configuration
 **So that** I can verify it works before using it for actual assets
 
+> **Queue Integration**: Test generation requests appear in the [Unified Generation Queue](./15-unified-generation-queue.md), providing consistent progress visibility.
+
 **Acceptance Criteria:**
 - "Test Workflow" button in settings
 - Opens modal with test prompt input
 - Runs generation with current defaults
+- Test request appears in unified generation queue with progress
 - Shows progress and result
 - Option to save test output or discard
 
@@ -172,6 +175,8 @@ The API format structure:
 
 ### Epic: Generation UI Integration
 
+> **Note**: All generation requests flow through the [Unified Generation Queue](./15-unified-generation-queue.md), which handles both image generation (ComfyUI) and LLM suggestions (Ollama) in a single queue panel.
+
 #### US-12.10: Dynamic Generation Form
 **As a** Director/Creator
 **I want to** see a generation form tailored to my workflow
@@ -183,6 +188,7 @@ The API format structure:
 - Prompt field is prominent at top
 - Advanced inputs in collapsible section
 - Seed field with "Random" and "Reuse Last" options
+- Submitted requests appear in unified generation queue
 
 ---
 
