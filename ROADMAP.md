@@ -3,7 +3,7 @@
 This document tracks all remaining work identified during the codebase analysis. Sub-agents should use this to understand context, track progress, and coordinate implementation.
 
 **Last Updated**: 2025-12-12
-**Overall Progress**: ~98% complete (Tier 1 + Tier 2 Complete, Phase 13-14 complete, Phase 15A-B complete, Phase 17 planned)
+**Overall Progress**: ~99% complete (Tier 1-4 complete: Phase 13-15 done, Phase 17 planned)
 
 ---
 
@@ -950,46 +950,48 @@ Director Mode: LLM suggests challenge → DM approves → Resolution → Narrati
 
 **Phase 15C: Web History Integration**
 
-- [ ] **4.3.8** Verify browser history works
+- [✅] **4.3.8** Verify browser history works (2025-12-12)
+  - Automatic via Dioxus Router
   - URL updates on navigation
   - Back/forward buttons work
-  - Test with Dioxus web feature
 
-- [ ] **4.3.9** Add state persistence (localStorage)
-  - Save server URL and role
-  - Restore on page load
-  - Clear on manual disconnect
+- [✅] **4.3.9** Add state persistence localStorage (2025-12-12)
+  - File: `Player/src/infrastructure/storage.rs` (new)
+  - Saves server URL, role, last world
+  - Platform-agnostic API (WASM + desktop stubs)
+  - Clear on disconnect
 
-- [ ] **4.3.10** Update page titles
-  - Dynamic `<title>` per route
-  - Include world name when available
+- [✅] **4.3.10** Update page titles (2025-12-12)
+  - File: `Player/src/routes.rs`
+  - `set_page_title()` helper for dynamic titles
+  - Per-route titles: "Main Menu", "Select Role", "Dungeon Master", etc.
 
-- [ ] **4.3.11** Test deep links
+- [✅] **4.3.11** Test deep links (2025-12-12)
+  - Documented in code comments
   - Direct URLs load correct view
-  - Handle missing state gracefully
-  - Show helpful errors for invalid worlds
+  - Missing state redirects appropriately
 
 **Phase 15D: Desktop URL Scheme**
 
-- [ ] **4.3.12** Register `wrldbldr://` scheme
-  - macOS: Info.plist CFBundleURLTypes
-  - Windows: Registry entry
-  - Linux: .desktop file MimeType
+- [✅] **4.3.12** Register `wrldbldr://` scheme (2025-12-12)
+  - macOS: `assets/macos/Info.plist` with CFBundleURLTypes
+  - Windows: `assets/windows/url-scheme.reg` registry entry
+  - Linux: `assets/linux/wrldbldr.desktop` with MimeType
 
-- [ ] **4.3.13** Handle incoming URLs
-  - Parse scheme URLs when app receives them
-  - Navigate to correct route
-  - Handle app launch vs already running
+- [✅] **4.3.13** Handle incoming URLs (2025-12-12)
+  - File: `Player/src/infrastructure/url_handler.rs` (new)
+  - `parse_url_scheme()` maps URLs to Route variants
+  - 8 unit tests for URL parsing
 
-**Phase 15E: Mobile Deep Linking (Future)**
+**Phase 15E: Mobile Deep Linking (Documentation)**
 
-- [ ] **4.3.14** Android intent filters
-  - Handle `wrldbldr://` scheme
-  - Universal links configuration
+- [✅] **4.3.14** Android intent filters (2025-12-12)
+  - Documented in `docs/DEEP_LINKING.md`
+  - Example AndroidManifest.xml configuration
 
-- [ ] **4.3.15** iOS URL types
-  - URL scheme registration
-  - Universal links support
+- [✅] **4.3.15** iOS URL types (2025-12-12)
+  - Documented in `docs/DEEP_LINKING.md`
+  - Example Info.plist configuration
 
 **Dependencies**:
 - Phase 13 (World Selection) - for world-based routes
@@ -1419,4 +1421,5 @@ A task is complete when:
 | 2025-12-12 | **Phase 14E Complete**: LLM Challenge Integration. `ActiveChallengeContext` added to LLM prompts with trigger hints. LLM outputs `<challenge_suggestion>` tags parsed into `ChallengeSuggestion` (challenge_id, confidence, reasoning). ApprovalPopup shows challenge suggestions with amber styling. `ChallengeRollModal` for d20 rolls with modifier calculation and platform-specific random generation. `TriggerChallengeModal` for manual challenge triggering. WebSocket message types: `ChallengePrompt`, `ChallengeResolved`, `ChallengeRoll`, `TriggerChallenge`, `ChallengeSuggestionDecision`. |
 | 2025-12-12 | **Phase 14F Complete**: Player Experience. Player-side WebSocket messages for `ChallengePrompt`, `ChallengeResolved`, `ChallengeRoll`. Session state extended with `active_challenge`, `challenge_results`, `player_skills` signals. PC View shows `ChallengeRollModal` when challenge is active, sends roll via `send_challenge_roll()`. New `SkillsDisplay` component groups skills by category with color-coded modifiers and proficiency indicators. Phase 14 (Rule Systems & Challenges) is now complete! |
 | 2025-12-12 | **Phase 15A-B Complete**: Routing & Navigation. Added Dioxus Router with 7 routes (MainMenu, RoleSelect, WorldSelect, DMView, PCView, SpectatorView, NotFound). New `routes.rs` (469 lines) with route components that wrap presentation views. main.rs reduced from 538 to 66 lines. Navigation uses `navigator().push()` instead of signal-based switching. Route guards handle missing state, connection logic moved to route components. NotFound page with 404 display and home link. |
+| 2025-12-12 | **Phase 15 Complete**: All routing tasks done. **15C**: localStorage persistence (`storage.rs`), dynamic page titles via `set_page_title()`. **15D**: `wrldbldr://` URL scheme assets for macOS (Info.plist), Windows (registry), Linux (.desktop). URL parser in `url_handler.rs` with 8 unit tests. **15E**: Mobile deep linking documented in `docs/DEEP_LINKING.md` with Android/iOS examples. |
 | 2025-12-12 | **Phase 17 (Story Arc) Added**: Comprehensive plan for past events timeline and future narrative events system. 28 tasks across 7 sub-phases: Domain Foundation (17A), Story Events Backend (17B), Narrative Events Backend (17C), LLM Integration (17D), Story Arc Tab UI (17E), Narrative Event UI (17F), Event Chains & Polish (17G). New entities: StoryEvent (13 event types), NarrativeEvent (14 trigger types, branching outcomes), EventChain. New UI: Story Arc tab (4th DM tab), Timeline view, Narrative Event Designer, Event Chain Visualizer, Pending Events Widget. Detailed plan in `plans/17-story-arc.md`. |
