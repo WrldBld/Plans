@@ -46,6 +46,7 @@ This document tracks all remaining work identified during the codebase analysis.
 - Rule Systems & Challenges (Both) - Phase 14
 - Routing & Navigation (Player) - Phase 15
 - Story Arc (Both) - Phase 17
+- ComfyUI Enhancements (Both) - Phase 18
 
 ### Tier 5: Future Features
 - Tactical Combat (Both)
@@ -1196,6 +1197,144 @@ Events chain together → Branching storylines based on outcomes
 - Event chains visualized as flowcharts
 - Events branch based on outcome selection
 - Pending events widget shows relevant events in Director view
+
+---
+
+### 4.5 ComfyUI Enhancements (Both) - Phase 18
+
+**Location**: Engine infrastructure + Player components
+
+**Plan Document**: `plans/18-comfyui-enhancements.md`
+
+**Context**: The current ComfyUI integration has critical gaps:
+- GenerationService emits events but they're NOT broadcast via WebSocket (disconnected)
+- Player's session_service has TODO: "Update GenerationState when passed to this function"
+- GenerationQueuePanel only shows "Failed" label, not error message
+- No retry logic, circuit breaker, or health monitoring
+- Style references not implemented (deferred from Phase 11)
+
+**Architecture**:
+```
+Phase 18A: ComfyUI Resilience (Backend)
+    │
+    └──> Phase 18B: Generation Event Wiring (Full Stack) [CRITICAL]
+              │
+              ├──> Phase 18C: Style Reference System (Full Stack)
+              │
+              ├──> Phase 18D: Director Mode Quick Generate (Frontend)
+              │
+              └──> Phase 18E: Batch Management UI (Frontend)
+```
+
+**Phase 18A: ComfyUI Resilience (Engine)**
+
+- [ ] **4.5.1** Create ComfyUIConfig value object
+  - File: `Engine/src/domain/value_objects/comfyui_config.rs` (NEW)
+  - max_retries (1-5), base_delay_seconds (1-30), timeouts
+
+- [ ] **4.5.2** Extend ComfyUIError enum
+  - Add ServiceUnavailable, CircuitOpen, Timeout, MaxRetriesExceeded
+
+- [ ] **4.5.3** Add CircuitBreaker struct
+  - Track failure count, open/close state
+  - 5 failures → open for 60s → half-open probe
+
+- [ ] **4.5.4** Add cached health check (5s TTL)
+  - Check before queue_prompt(), fail fast if unhealthy
+
+- [ ] **4.5.5** Add retry wrapper with exponential backoff
+  - Default: 5s, 15s, 45s delays
+  - Only retry transient errors (5xx, timeout)
+
+- [ ] **4.5.6** Add config API endpoints
+  - GET/PUT /api/config/comfyui
+
+**Phase 18B: Generation Event Wiring (Full Stack)** [CRITICAL]
+
+- [ ] **4.5.7** Wire GenerationService events to WebSocket
+  - File: `Engine/src/infrastructure/websocket.rs`
+  - Subscribe to event channel, broadcast to session
+
+- [ ] **4.5.8** Add ComfyUIStateChanged WebSocket message
+  - Both Engine and Player message types
+  - state, message, retry_in_seconds fields
+
+- [ ] **4.5.9** Handle generation events in session_service
+  - File: `Player/src/application/services/session_service.rs`
+  - Fix TODO at line ~484: call GenerationState methods
+
+- [ ] **4.5.10** Update GenerationQueuePanel error display
+  - File: `Player/src/presentation/components/creator/generation_queue.rs`
+  - Show error messages, expandable details, retry button
+
+- [ ] **4.5.11** Create ComfyUI disconnected banner
+  - File: `Player/src/presentation/components/creator/comfyui_banner.rs` (NEW)
+  - Show when disconnected, countdown to retry
+
+**Phase 18C: Style Reference System (Full Stack)**
+
+- [ ] **4.5.12** Add StyleReferenceMapping to workflow config
+  - AutoDetect, Specific{node_id, input_name}, PromptInjection, Disabled
+
+- [ ] **4.5.13** Implement IPAdapter auto-detection
+  - Scan workflow for nodes with "IPAdapter" in class_type
+
+- [ ] **4.5.14** Inject style reference into workflow
+  - IPAdapter: set image input to reference path
+  - Fallback: append style keywords to prompt
+
+- [ ] **4.5.15** Add "Use as Reference" to asset context menu
+  - Select reference, show in generation modal
+
+- [ ] **4.5.16** Add style reference input selector to workflow editor
+  - Dropdown with detected image inputs
+
+**Phase 18D: Director Mode Quick Generate (Player)**
+
+- [ ] **4.5.17** Add generate buttons to NPC panel
+  - File: `Player/src/presentation/components/dm_panel/npc_motivation.rs`
+  - "Generate Portrait", "Generate Sprite" buttons
+
+- [ ] **4.5.18** Create DirectorGenerateModal
+  - File: `Player/src/presentation/components/dm_panel/director_generate_modal.rs` (NEW)
+  - Pre-populate prompt from character description
+
+- [ ] **4.5.19** Add queue badge to Director Mode header
+  - Show active generation count
+
+- [ ] **4.5.20** Create minimal DirectorQueuePanel
+  - Slide-in panel showing active batches
+
+**Phase 18E: Batch Management UI (Player)**
+
+- [ ] **4.5.21** Add cancel batch endpoint
+  - DELETE /api/assets/batch/{batch_id}
+
+- [ ] **4.5.22** Add retry batch endpoint
+  - POST /api/assets/batch/{batch_id}/retry
+
+- [ ] **4.5.23** Add clear batch endpoint
+  - DELETE /api/assets/batch/{batch_id}/clear
+
+- [ ] **4.5.24** Add batch management buttons to queue UI
+  - Cancel (queued), Retry/Clear (failed), Select/Clear (ready)
+
+- [ ] **4.5.25** Add batch details expansion
+  - Show prompt, workflow, timestamps when expanded
+
+- [ ] **4.5.26** Add "Clear All Completed" bulk action
+
+**Dependencies**:
+- Phase 11/12 (Asset Gallery, Workflow Settings) - existing infrastructure
+- Existing WebSocket message types (need wiring, not creation)
+
+**Acceptance Criteria**:
+- Real-time generation progress via WebSocket
+- Detailed error messages with expandable details
+- ComfyUI disconnected banner with reconnect countdown
+- Style references work via IPAdapter or prompt injection
+- Generate assets from Director Mode NPC panel
+- Cancel/retry/clear batches from queue UI
 
 ---
 
