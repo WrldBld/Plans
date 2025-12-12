@@ -3,7 +3,7 @@
 This document tracks all remaining work identified during the codebase analysis. Sub-agents should use this to understand context, track progress, and coordinate implementation.
 
 **Last Updated**: 2025-12-12
-**Overall Progress**: ~97% complete (Tier 1 + Tier 2 Complete, Phase 13 complete, Phase 14 complete, Phase 17 planned)
+**Overall Progress**: ~98% complete (Tier 1 + Tier 2 Complete, Phase 13-14 complete, Phase 15A-B complete, Phase 17 planned)
 
 ---
 
@@ -911,44 +911,42 @@ Director Mode: LLM suggests challenge → DM approves → Resolution → Narrati
 
 **Phase 15A: Basic Router Setup**
 
-- [ ] **4.3.1** Add router feature to Dioxus
+- [✅] **4.3.1** Add router feature to Dioxus (2025-12-12)
   - File: `Player/Cargo.toml`
-  - Add `router` feature to dioxus dependencies
-  - Both web and desktop targets
+  - Added `router` feature to both desktop and web dioxus dependencies
 
-- [ ] **4.3.2** Define Route enum
-  - File: `Player/src/main.rs` or new `routes.rs`
-  - Use `#[derive(Routable)]` macro
-  - All routes with parameters (world_id, mode)
-  - NotFound fallback route
+- [✅] **4.3.2** Define Route enum (2025-12-12)
+  - File: `Player/src/routes.rs` (new, 469 lines)
+  - Route enum with `#[derive(Routable)]` macro
+  - 7 routes: MainMenuRoute, RoleSelectRoute, WorldSelectRoute, DMViewRoute, PCViewRoute, SpectatorViewRoute, NotFoundRoute
+  - world_id parameter for game views
 
-- [ ] **4.3.3** Update App to use Router
-  - File: `Player/src/main.rs`
-  - Replace signal-based view switching with `Router::<Route>`
-  - Keep context providers for state
+- [✅] **4.3.3** Update App to use Router (2025-12-12)
+  - File: `Player/src/main.rs` (reduced from 538 to 66 lines)
+  - Replaced signal-based view switching with `Router::<Route>`
+  - Context providers for state preserved
 
-- [ ] **4.3.4** Convert views to accept route params
-  - Files: All view files in `presentation/views/`
-  - DMView receives world_id
-  - PlayerView receives world_id
-  - SpectatorView receives world_id
+- [✅] **4.3.4** Convert views to accept route params (2025-12-12)
+  - Route components wrap presentation views
+  - DMViewRoute, PCViewRoute, SpectatorViewRoute receive world_id
+  - Connection logic moved to route components
 
 **Phase 15B: Route Guards & Navigation**
 
-- [ ] **4.3.5** Implement route guards
-  - Cannot access `/worlds` without role selection
-  - Cannot access game views without world selection
-  - Redirect to appropriate step if state missing
+- [✅] **4.3.5** Implement route guards (2025-12-12)
+  - Routes handle missing state by redirecting
+  - Connection initiated on world selection
+  - Disconnect handled on back navigation
 
-- [ ] **4.3.6** Update navigation calls
-  - Replace `current_view.set(...)` with `navigator().push(...)`
-  - Update all back buttons
-  - Update all navigation handlers
+- [✅] **4.3.6** Update navigation calls (2025-12-12)
+  - All `current_view.set(...)` replaced with `navigator().push(...)`
+  - Back buttons use navigator with disconnect logic
+  - All navigation handlers updated
 
-- [ ] **4.3.7** Create NotFound component
-  - Display "Page Not Found" message
-  - Suggest valid destinations
+- [✅] **4.3.7** Create NotFound component (2025-12-12)
+  - 404 page with route path display
   - Link back to main menu
+  - Clean styling
 
 **Phase 15C: Web History Integration**
 
@@ -1420,4 +1418,5 @@ A task is complete when:
 | 2025-12-12 | **Phase 14D Complete**: Challenge System Core. Challenge entity with ChallengeType (SkillCheck, AbilityCheck, SavingThrow, OpposedCheck, ComplexChallenge), Difficulty (DC, Percentage, Descriptor, Opposed, Custom), ChallengeOutcomes, OutcomeTrigger, TriggerCondition. Neo4jChallengeRepository with CRUD operations. REST API endpoints (list, get, create, update, delete, toggle favorite, set active). ChallengeLibrary UI component with search, filtering by type/favorites/active, challenge cards grouped by type, and ChallengeFormModal for create/edit. Integrated into DM View with "Manage Challenges" button. |
 | 2025-12-12 | **Phase 14E Complete**: LLM Challenge Integration. `ActiveChallengeContext` added to LLM prompts with trigger hints. LLM outputs `<challenge_suggestion>` tags parsed into `ChallengeSuggestion` (challenge_id, confidence, reasoning). ApprovalPopup shows challenge suggestions with amber styling. `ChallengeRollModal` for d20 rolls with modifier calculation and platform-specific random generation. `TriggerChallengeModal` for manual challenge triggering. WebSocket message types: `ChallengePrompt`, `ChallengeResolved`, `ChallengeRoll`, `TriggerChallenge`, `ChallengeSuggestionDecision`. |
 | 2025-12-12 | **Phase 14F Complete**: Player Experience. Player-side WebSocket messages for `ChallengePrompt`, `ChallengeResolved`, `ChallengeRoll`. Session state extended with `active_challenge`, `challenge_results`, `player_skills` signals. PC View shows `ChallengeRollModal` when challenge is active, sends roll via `send_challenge_roll()`. New `SkillsDisplay` component groups skills by category with color-coded modifiers and proficiency indicators. Phase 14 (Rule Systems & Challenges) is now complete! |
+| 2025-12-12 | **Phase 15A-B Complete**: Routing & Navigation. Added Dioxus Router with 7 routes (MainMenu, RoleSelect, WorldSelect, DMView, PCView, SpectatorView, NotFound). New `routes.rs` (469 lines) with route components that wrap presentation views. main.rs reduced from 538 to 66 lines. Navigation uses `navigator().push()` instead of signal-based switching. Route guards handle missing state, connection logic moved to route components. NotFound page with 404 display and home link. |
 | 2025-12-12 | **Phase 17 (Story Arc) Added**: Comprehensive plan for past events timeline and future narrative events system. 28 tasks across 7 sub-phases: Domain Foundation (17A), Story Events Backend (17B), Narrative Events Backend (17C), LLM Integration (17D), Story Arc Tab UI (17E), Narrative Event UI (17F), Event Chains & Polish (17G). New entities: StoryEvent (13 event types), NarrativeEvent (14 trigger types, branching outcomes), EventChain. New UI: Story Arc tab (4th DM tab), Timeline view, Narrative Event Designer, Event Chain Visualizer, Pending Events Widget. Detailed plan in `plans/17-story-arc.md`. |
