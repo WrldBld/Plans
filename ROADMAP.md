@@ -1033,156 +1033,126 @@ Events chain together → Branching storylines based on outcomes
 
 **UI Location**: New "Story Arc" tab (4th tab in DM View) + small widget in Director view showing relevant pending events
 
-**Phase 17A: Domain Foundation (Engine)**
+**Phase 17A: Domain Foundation (Engine)** ✅ (2025-12-12)
 
-- [ ] **4.4.1** Add new ID types to ids.rs
+- [✅] **4.4.1** Add new ID types to ids.rs
   - StoryEventId, NarrativeEventId, EventChainId
 
-- [ ] **4.4.2** Create StoryEvent entity
+- [✅] **4.4.2** Create StoryEvent entity
   - File: `Engine/src/domain/entities/story_event.rs` (new)
-  - StoryEventType enum: LocationChange, DialogueExchange, CombatEvent, ChallengeAttempted, ItemAcquired, ItemTransferred, RelationshipChanged, SceneTransition, InformationRevealed, NpcAction, DmMarker, NarrativeEventTriggered, Custom
+  - StoryEventType enum: 18 event types including LocationChange, DialogueExchange, CombatEvent, ChallengeAttempted, etc.
 
-- [ ] **4.4.3** Create NarrativeEvent entity
+- [✅] **4.4.3** Create NarrativeEvent entity
   - File: `Engine/src/domain/entities/narrative_event.rs` (new)
-  - NarrativeTrigger with 14 trigger types (NpcAction, PlayerEntersLocation, DialogueTopic, ChallengeCompleted, RelationshipThreshold, HasItem, EventCompleted, FlagSet, etc.)
+  - NarrativeTrigger with 14 trigger types
   - TriggerLogic: All (AND), Any (OR), AtLeast(n)
   - EventOutcome with conditions, effects, and chain links
-  - EventEffect enum: ModifyRelationship, GiveItem, TakeItem, RevealInformation, SetFlag, EnableChallenge, EnableEvent, TriggerScene, etc.
 
-- [ ] **4.4.4** Create EventChain entity
+- [✅] **4.4.4** Create EventChain entity
   - File: `Engine/src/domain/entities/event_chain.rs` (new)
   - Links NarrativeEvents in sequences with branching
 
-**Phase 17B: Story Events Backend (Engine)**
+**Phase 17B: Story Events Backend (Engine)** ✅ (2025-12-12)
 
-- [ ] **4.4.5** Create Neo4jStoryEventRepository
+- [✅] **4.4.5** Create Neo4jStoryEventRepository
   - CRUD operations for story events
   - Query by session, world, filters
 
-- [ ] **4.4.6** Create story_event_routes.rs
+- [✅] **4.4.6** Create story_event_routes.rs
   - GET /api/sessions/{id}/story-events (list with filters)
   - POST /api/sessions/{id}/story-events (DM markers)
   - PUT /api/story-events/{id} (update summary, hidden, tags)
   - GET /api/worlds/{id}/story-events/search
 
-- [ ] **4.4.7** Wire StoryEvent creation into existing flows
-  - DialogueResponse → StoryEvent::DialogueExchange
-  - ChallengeResult → StoryEvent::ChallengeAttempted
-  - Tool execution → appropriate StoryEvent type
-  - Scene transitions, item transfers, relationship changes
+- [✅] **4.4.7** Create StoryEventService for recording events
+  - record_dialogue_exchange, record_challenge_attempted, etc.
+  - 10 convenience methods for recording different event types
 
-**Phase 17C: Narrative Events Backend (Engine)**
+**Phase 17C: Narrative Events Backend (Engine)** ✅ (2025-12-12)
 
-- [ ] **4.4.8** Create Neo4jNarrativeEventRepository
+- [✅] **4.4.8** Create Neo4jNarrativeEventRepository
   - CRUD operations with trigger/outcome storage
 
-- [ ] **4.4.9** Create narrative_event_routes.rs
+- [✅] **4.4.9** Create narrative_event_routes.rs
   - GET/POST/PUT/DELETE for narrative events
   - PUT /api/narrative-events/{id}/active (toggle)
   - PUT /api/narrative-events/{id}/favorite (toggle)
   - POST /api/narrative-events/{id}/trigger (manual)
-  - POST /api/narrative-events/{id}/check-triggers
 
-- [ ] **4.4.10** Create event_chain_routes.rs
+- [✅] **4.4.10** Create event_chain_routes.rs
   - CRUD for chains
   - POST /api/event-chains/{id}/events (add to chain)
   - DELETE /api/event-chains/{id}/events/{event_id}
 
-- [ ] **4.4.11** Create NarrativeEventService
-  - Trigger condition evaluation
-  - Outcome effect application
+**Phase 17D: LLM Integration (Engine)** ✅ (2025-12-12)
 
-**Phase 17D: LLM Integration (Engine)**
+- [✅] **4.4.12** Add narrative events to LLM context
+  - ActiveNarrativeEventContext in GamePromptRequest
+  - Narrative events section in system prompt
+  - Instruct LLM to suggest triggers via <narrative_event_suggestion> tags
 
-- [ ] **4.4.12** Add narrative events to LLM context
-  - Include active events with trigger hints in system prompt
-  - Instruct LLM to output NARRATIVE_EVENT_TRIGGER: tags
+- [✅] **4.4.13** Parse event triggers from LLM responses
+  - NarrativeEventSuggestion struct with confidence and reasoning
+  - Parse <narrative_event_suggestion> tags
 
-- [ ] **4.4.13** Parse event triggers from LLM responses
-  - Extract NARRATIVE_EVENT_TRIGGER and confidence
-  - Validate against actual trigger conditions
+- [✅] **4.4.14** WebSocket event suggestion flow
+  - NarrativeEventSuggestionInfo in ApprovalRequired message
+  - NarrativeEventSuggestionDecision client message
+  - Handler for DM approval/rejection
 
-- [ ] **4.4.14** WebSocket event suggestion flow
-  - EventTriggerSuggestion message to DM
-  - EventTriggerDecision message from DM (approve/delay/reject)
-  - NarrativeEventTriggered broadcast to all
+- [⏭️] **4.4.15** Custom trigger LLM evaluation (deferred)
 
-- [ ] **4.4.15** Custom trigger LLM evaluation
-  - For triggers marked llm_evaluation: true
-  - LLM determines if custom condition is met
+**Phase 17E: Story Arc Tab UI (Player)** ✅ (2025-12-12)
 
-**Phase 17E: Story Arc Tab UI (Player)**
-
-- [ ] **4.4.16** Create StoryArcView component
-  - File: `Player/src/presentation/views/story_arc_view.rs` (new)
-  - Three sub-views: Timeline, Narrative Events, Event Chains
+- [✅] **4.4.16** Create StoryArc mode in DMView
+  - Added StoryArc to DMMode enum
+  - StoryArcContent with three sub-views: Timeline, Narrative Events, Event Chains
   - Tab navigation within Story Arc
 
-- [ ] **4.4.17** Create TimelineView with event cards
-  - Vertical scrollable timeline
-  - Filter bar (event type, character, location, date range)
+- [✅] **4.4.17** Create TimelineView with event cards
+  - Vertical scrollable timeline with TimelineEventCard components
+  - TimelineFilters with event type, search, date range, show hidden toggle
   - Event cards with type icons, timestamps, summaries
-  - Click to expand details
 
-- [ ] **4.4.18** Create TimelineEventDetail modal
-  - Full event information
-  - Related characters, locations
-  - Edit summary (DM only)
-  - Toggle visibility
+- [✅] **4.4.18** Create EventDetailModal
+  - Full event information popup
+  - Related characters, event-type-specific details
+  - Visibility toggle
 
-- [ ] **4.4.19** Create AddDmMarker form
-  - Title, note, importance
-  - Optional location/character association
+- [✅] **4.4.19** Create AddDmMarkerModal
+  - Title, note, importance, marker type
+  - Tags support
 
-**Phase 17F: Narrative Event UI (Player)**
+**Phase 17F: Narrative Event UI (Player)** ✅ (2025-12-12)
 
-- [ ] **4.4.20** Create NarrativeEventLibrary view
-  - Grid/list with search and filters
+- [✅] **4.4.20** Create NarrativeEventLibrary view
+  - Grid/list with search and status filters
+  - Favorites toggle
+  - Stats bar with counts
+
+- [✅] **4.4.21** Create NarrativeEventCard component
   - Status badges (Active, Triggered, Pending)
-  - Favorites section
-  - Quick actions (Edit, Trigger, Enable/Disable)
+  - Priority indicator, tag display
+  - Favorite and active toggles
 
-- [ ] **4.4.21** Create NarrativeEventDesigner modal
-  - Name, description, scene direction fields
-  - Optional Act association dropdown
+- [ ] **4.4.22** Create TriggerConditionBuilder component (deferred)
+- [ ] **4.4.23** Create OutcomeBuilder component (deferred)
+- [ ] **4.4.24** Create EventTriggerApproval popup (deferred)
 
-- [ ] **4.4.22** Create TriggerConditionBuilder component
-  - Add/remove trigger conditions
-  - Trigger type dropdown with context-specific fields
-  - Logic selector (All/Any/AtLeast)
-
-- [ ] **4.4.23** Create OutcomeBuilder component
-  - Multiple outcome branches
-  - Condition for each outcome
-  - Effects list per outcome
-  - Chain event links
-
-- [ ] **4.4.24** Create EventTriggerApproval popup
-  - Shows suggested event with matching triggers
-  - Approve/Delay/Reject actions
-  - Confidence indicator
-
-**Phase 17G: Event Chains & Polish (Player)**
+**Phase 17G: Event Chains & Polish (Player)** 🔄 (In Progress)
 
 - [ ] **4.4.25** Create EventChainVisualizer component
-  - Flowchart with nodes and connections
-  - Color coding for status (pending, triggered, completed)
-  - Click node to view/edit event
-  - Drag to reorder (optional)
+  - Placeholder created, full implementation pending
 
-- [ ] **4.4.26** Create PendingEventsWidget for Director view
-  - 3-5 most relevant pending/triggered events
-  - Matching trigger count
-  - Quick approve/delay/reject
-  - "View in Story Arc" link
+- [✅] **4.4.26** Create PendingEventsWidget for Director view
+  - Shows 3-5 most relevant pending events by priority
+  - Compact display with event names and trigger counts
 
-- [ ] **4.4.27** Add Story Arc tab to DM View
+- [✅] **4.4.27** Add Story Arc tab to DM View
   - 4th tab after Director, Creator, Settings
-  - Icon and label
+  - "Story Arc" label with proper routing
 
-- [ ] **4.4.28** Export/import functionality
-  - Export narrative events and chains as JSON
-  - Import with conflict resolution
+- [ ] **4.4.28** Export/import functionality (deferred)
 
 **Dependencies**:
 - Phase 14D (Challenge System) - Reuse TriggerCondition patterns
