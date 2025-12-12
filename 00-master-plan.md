@@ -580,6 +580,34 @@ Player/
 - [ ] Audio integration (music, SFX)
 - [ ] Performance profiling
 
+## Phase 11: Director Creation UI ✅ COMPLETED
+**Details:** `plans/11-director-creation-ui.md`
+- [x] Asset Gallery with CRUD operations
+- [x] Generation Queue system
+- [x] LLM Suggestion Integration (characters, locations)
+- [x] Entity Browser with real API calls
+
+## Phase 12: Workflow Settings ✅ COMPLETED
+**Details:** `plans/12-workflow-settings.md`
+- [x] Workflow Upload Modal
+- [x] Workflow Slot List with 9 configurable slots
+- [x] Workflow Config Editor
+
+## Phase 13: World Selection & Session Management
+**Details:** `plans/13-world-selection.md`
+- [ ] World Selection view (DM: create/continue, Player: join, Spectator: watch)
+- [ ] World CRUD with statistics
+- [ ] Session awareness (connected users, DM status)
+- [ ] Navigation integration
+
+## Phase 14: Routing & Navigation
+**Details:** `plans/14-routing-navigation.md`
+- [ ] Dioxus Router integration
+- [ ] URL-based navigation with browser history
+- [ ] Deep linking support (web, mobile, desktop)
+- [ ] State persistence and restoration
+- [ ] Desktop URL scheme registration
+
 ---
 
 # PART 4: WebSocket Protocol
