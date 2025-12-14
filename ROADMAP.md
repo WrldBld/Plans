@@ -2,8 +2,72 @@
 
 This document tracks all remaining work identified during the codebase analysis. Sub-agents should use this to understand context, track progress, and coordinate implementation.
 
-**Last Updated**: 2025-12-12
-**Overall Progress**: ~99% complete (Tier 1-4 complete: Phase 13-15 done, Phase 17 planned)
+**Last Updated**: 2025-12-14
+**Overall Progress**: Core gameplay complete; Queue system architecture and feature enhancements in progress
+
+**Current Priority**: **Phase 19 (Queue System)** - Foundation for all async operations, crash recovery, and Phase 15/16 features
+
+**Key Updates**:
+- Phase 19 validated and ready for implementation
+- Phase 15 (Generation Queue) and Phase 16 (Decision Queue) depend on Phase 19
+- Phase 18.2.3 (WebSocket refactoring) merged into Phase 19C
+- Architecture analysis documents created for all major features
+
+---
+
+## Implementation Order (Critical Path)
+
+### Immediate Priority: Phase 19 (Queue System)
+
+**Why First**: 
+- ✅ Solves critical lock pattern problem blocking WebSocket refactoring
+- ✅ Enables Phase 15 (Generation Queue) and Phase 16 (Decision Queue)
+- ✅ Provides crash recovery and audit trails
+- ✅ Foundation for scaling to multi-server deployments
+
+**Implementation Sequence**:
+1. **Phase 19A** (Week 1): Core queue infrastructure
+   - Queue ports and types
+   - InMemoryQueue (testing)
+   - SqliteQueue (production)
+   - Queue configuration
+
+2. **Phase 19B** (Week 2): Queue services
+   - All 5 queue services
+   - Background workers
+   - Concurrency control (semaphores)
+
+3. **Phase 19C** (Week 2-3): WebSocket integration
+   - Refactor WebSocket handler to use queues
+   - Add queue status events
+   - **Completes Phase 18.2.3** (WebSocket refactoring)
+
+4. **Phase 19D** (Week 3): Configuration & polish
+   - Queue factory
+   - Cleanup tasks
+   - Health checks
+   - Metrics/logging
+
+**After Phase 19**:
+5. **Phase 15** (Week 4): Unified Generation Queue
+   - Builds on LLMReasoningQueue + AssetGenerationQueue
+   - Unify image + suggestion queues
+   - Frontend queue UI
+
+6. **Phase 16** (Week 4-5): Director Decision Queue
+   - Builds on DMApprovalQueue
+   - Frontend decision queue UI
+   - History and filtering
+
+**Blocked Until Phase 19**:
+- ⏸️ Phase 15 (Generation Queue) - Needs LLMReasoningQueue + AssetGenerationQueue
+- ⏸️ Phase 16 (Decision Queue) - Needs DMApprovalQueue
+- ⏸️ Phase 18.2.3 (WebSocket refactoring) - Merged into Phase 19C
+
+**Reference Documents**:
+- [19-queue-system.md](./19-queue-system.md) - Complete queue system plan
+- [queue_system_architecture_validation.md](./queue_system_architecture_validation.md) - Architecture validation
+- [lock_refactoring_analysis.md](./lock_refactoring_analysis.md) - Lock pattern analysis
 
 ---
 
@@ -42,11 +106,14 @@ This document tracks all remaining work identified during the codebase analysis.
 - Security (Engine)
 
 ### Tier 4: Session & World Management
-- World Selection Flow (Player) - Phase 13
-- Rule Systems & Challenges (Both) - Phase 14
-- Routing & Navigation (Player) - Phase 15
-- Story Arc (Both) - Phase 17
-- ComfyUI Enhancements (Both) - Phase 18
+- **Queue System Architecture (Engine) - Phase 19** ⚠️ **CURRENT PRIORITY**
+- World Selection Flow (Player) - Phase 13 ✅
+- Rule Systems & Challenges (Both) - Phase 14 ✅
+- Routing & Navigation (Player) - Phase 15 ✅
+- Story Arc (Both) - Phase 17 (partial)
+- ComfyUI Enhancements (Both) - Phase 18 (partial)
+- Unified Generation Queue (Both) - Phase 15 (depends on Phase 19)
+- Director Decision Queue (Both) - Phase 16 (depends on Phase 19)
 
 ### Tier 5: Future Features
 - Tactical Combat (Both)
@@ -258,13 +325,23 @@ This document tracks all remaining work identified during the codebase analysis.
 
 ### 2.1b Unified Generation Queue - Creator Mode (Player + Engine)
 
-**Plan**: [15-unified-generation-queue.md](./15-unified-generation-queue.md)
+**Plan**: [15-unified-generation-queue.md](./15-unified-generation-queue.md)  
+**Analysis**: [unified_generation_queue_analysis.md](./unified_generation_queue_analysis.md)
 
 **Summary**: Unify image generation and LLM suggestion requests into a single queue system in Creator Mode, with WebSocket events for real-time progress visibility.
 
 **Location**: Creator Mode sidebar
 
-**Status**: [ ] Not started
+**Status**: [⏸️] **BLOCKED** - Depends on Phase 19 (Queue System)
+
+**Current State**: 
+- ✅ Image generation uses queue system (GenerationState, WebSocket events)
+- ❌ LLM suggestions are synchronous HTTP requests (not queued)
+- ❌ No unified queue UI showing both types
+
+**Dependencies**: 
+- **REQUIRES Phase 19** - Needs LLMReasoningQueue and AssetGenerationQueue infrastructure
+- Phase 19 provides the queue infrastructure this feature builds upon
 
 **Tasks**: See plan document for detailed breakdown (15A: Engine, 15B: Player, 15C: Polish)
 
@@ -272,15 +349,29 @@ This document tracks all remaining work identified during the codebase analysis.
 
 ### 2.1c Director Decision Queue - Director Mode (Player + Engine)
 
-**Plan**: [16-director-decision-queue.md](./16-director-decision-queue.md)
+**Plan**: [16-director-decision-queue.md](./16-director-decision-queue.md)  
+**Analysis**: [director_decision_queue_analysis.md](./director_decision_queue_analysis.md)
 
 **Summary**: Provide DM visibility and control over all AI gameplay decisions (NPC responses, tool usage, challenge suggestions) before they affect players.
 
 **Location**: Director Mode sidebar
 
-**Status**: [ ] Not started
+**Status**: [⏸️] **BLOCKED** - Depends on Phase 19 (Queue System)
 
-**Key Features**:
+**Current State**:
+- ✅ ApprovalService and PlayerActionService exist (partial implementation)
+- ✅ Basic approval workflow (Accept/Modify/Reject/TakeOver) works
+- ❌ No queue infrastructure (uses in-memory HashMap)
+- ❌ No decision history, delay, expiration features
+- ❌ No decision queue UI in Director Mode
+- ❌ No WebSocket events for decision queue
+
+**Dependencies**: 
+- **REQUIRES Phase 19** - Needs DMApprovalQueue infrastructure
+- Phase 19 provides the queue infrastructure this feature builds upon
+- Current services (PlayerActionService, ApprovalService) will be refactored to use queues
+
+**Key Features** (to be implemented):
 - Real-time queue of pending AI decisions
 - Approve/Reject/Modify/Delay actions
 - Type filtering (Dialogue, Tools, Challenges, Transitions)
@@ -288,6 +379,144 @@ This document tracks all remaining work identified during the codebase analysis.
 - Keyboard shortcuts for fast approval workflow
 
 **Tasks**: See plan document for detailed breakdown (16A: Engine, 16B: Player UI, 16C: Integration)
+
+---
+
+### 2.1d Unified Queue System - Engine Architecture (Phase 19) ⚠️ **CURRENT PRIORITY**
+
+**Plan**: [19-queue-system.md](./19-queue-system.md)  
+**Architecture Validation**: [queue_system_architecture_validation.md](./queue_system_architecture_validation.md)  
+**Lock Pattern Analysis**: [lock_refactoring_analysis.md](./lock_refactoring_analysis.md)
+
+**Summary**: Implement a comprehensive queue system for all game actions, AI processing, and DM approvals. Provides crash recovery, audit trails, and foundation for scaling. **Solves lock pattern issues** identified in architecture analysis.
+
+**Status**: [ ] Not started - **READY TO IMPLEMENT**
+
+**Why This Is Priority**:
+- ✅ Solves critical lock pattern problem (WebSocket handlers can't hold locks across async boundaries)
+- ✅ Enables Phase 15 (Generation Queue) and Phase 16 (Decision Queue)
+- ✅ Provides crash recovery and audit trails
+- ✅ Foundation for scaling to multi-server deployments
+
+**Five Queues**:
+| Queue | Purpose | Persistence | Current State |
+|-------|---------|-------------|---------------|
+| `PlayerActionQueue` | Player actions awaiting processing | Yes | ❌ Not implemented |
+| `DMActionQueue` | DM actions awaiting processing | Yes | ❌ Not implemented |
+| `LLMReasoningQueue` | Ollama requests (BATCH_SIZE controlled) | Optional | ❌ Not implemented |
+| `AssetGenerationQueue` | ComfyUI requests (BATCH_SIZE=1) | Optional | ⚠️ Partial (GenerationService uses HashMap) |
+| `DMApprovalQueue` | Decisions awaiting DM approval | Yes | ⚠️ Partial (uses in-memory HashMap) |
+
+**Key Features**:
+- Hexagonal architecture with pluggable backends (InMemory, SQLite, Redis)
+- Crash recovery via persistent queues
+- Audit trail for all actions
+- Concurrency control (BATCH_SIZE) for AI services
+- History tracking for approvals
+- **Solves lock pattern**: WebSocket handlers enqueue and return immediately
+
+**Current Services to Refactor**:
+- `PlayerActionService` - Currently uses problematic lock pattern, needs queue integration
+- `ApprovalService` - Currently uses in-memory HashMap, needs DMApprovalQueue
+- `GenerationService` - Currently uses in-memory HashMap, needs AssetGenerationQueue
+- `websocket.rs` - Contains orchestration (Phase 18.2.3), will be refactored in Phase 19C
+
+**Dependencies**:
+- ✅ No blockers - can start immediately
+- Enables Phase 15 (Generation Queue uses LLMReasoningQueue + AssetGenerationQueue)
+- Enables Phase 16 (Decision Queue uses DMApprovalQueue)
+- Completes Phase 18.2.3 (WebSocket refactoring) as part of Phase 19C
+
+**Implementation Phases**:
+
+**Phase 19A: Core Queue Infrastructure** (Week 1)
+- [ ] **19A.1** Create queue port interfaces
+  - File: `Engine/src/application/ports/outbound/queue_port.rs` (NEW)
+  - `QueuePort<T>`, `ApprovalQueuePort<T>`, `ProcessingQueuePort<T>`
+  - `QueueItem<T>`, `QueueItemStatus`, `QueueError`
+
+- [ ] **19A.2** Create queue item types
+  - File: `Engine/src/domain/value_objects/queue_items.rs` (NEW)
+  - `QueueItemId`, `PlayerActionItem`, `DMActionItem`, `LLMRequestItem`, `AssetGenerationItem`, `ApprovalItem`
+
+- [ ] **19A.3** Implement InMemoryQueue
+  - File: `Engine/src/infrastructure/queues/memory_queue.rs` (NEW)
+  - For development and testing
+  - Priority-based dequeue
+
+- [ ] **19A.4** Implement SqliteQueue
+  - File: `Engine/src/infrastructure/queues/sqlite_queue.rs` (NEW)
+  - Production persistence
+  - Add `sqlx` with SQLite feature to Cargo.toml
+  - Schema: queue_items table with indexes
+
+**Phase 19B: Queue Services** (Week 2)
+- [ ] **19B.1** Create PlayerActionQueueService
+  - File: `Engine/src/application/services/player_action_queue_service.rs` (NEW)
+  - Enqueue and process player actions
+  - Routes to LLMReasoningQueue
+
+- [ ] **19B.2** Create DMActionQueueService
+  - File: `Engine/src/application/services/dm_action_queue_service.rs` (NEW)
+  - Enqueue and process DM actions (approvals, triggers, etc.)
+
+- [ ] **19B.3** Create LLMQueueService
+  - File: `Engine/src/application/services/llm_queue_service.rs` (NEW)
+  - Concurrency-controlled LLM processing (semaphore)
+  - Background worker task
+  - Routes responses to DMApprovalQueue
+
+- [ ] **19B.4** Create AssetGenerationQueueService
+  - File: `Engine/src/application/services/asset_generation_queue_service.rs` (NEW)
+  - Refactor GenerationService to use queue
+  - ComfyUI request processing with concurrency control
+
+- [ ] **19B.5** Create DMApprovalQueueService
+  - File: `Engine/src/application/services/dm_approval_queue_service.rs` (NEW)
+  - Migrate from current ApprovalService
+  - Add history, delay, expiration features
+
+**Phase 19C: WebSocket Integration** (Week 2-3)
+- [ ] **19C.1** Update WebSocket handler to use queues
+  - File: `Engine/src/infrastructure/websocket.rs`
+  - PlayerAction → PlayerActionQueue (enqueue and return immediately)
+  - ApprovalDecision → DMActionQueue
+  - **Completes Phase 18.2.3** (WebSocket refactoring)
+
+- [ ] **19C.2** Add queue status WebSocket events
+  - File: `Engine/src/infrastructure/websocket.rs`
+  - `QueueStatus` updates to DM
+  - `ActionQueued`, `LLMProcessing`, `ApprovalRequired` events
+  - Queue depth notifications
+
+- [ ] **19C.3** Start background workers
+  - File: `Engine/src/main.rs`
+  - Spawn worker tasks for each queue service
+  - Graceful shutdown handling
+
+**Phase 19D: Configuration & Polish** (Week 3)
+- [ ] **19D.1** Add QueueConfig to AppConfig
+  - File: `Engine/src/infrastructure/config.rs`
+  - Backend selection (memory/sqlite/redis)
+  - Batch sizes, timeouts, retention
+
+- [ ] **19D.2** Queue factory based on backend config
+  - File: `Engine/src/infrastructure/queues/mod.rs` (NEW)
+  - Create appropriate queue backend from config
+
+- [ ] **19D.3** Cleanup task for old items
+  - Background task to remove completed/failed items older than retention period
+
+- [ ] **19D.4** Health check for queue status
+  - Endpoint: `GET /api/health/queues`
+  - Shows depth, processing count, errors
+
+- [ ] **19D.5** Metrics/logging for queue operations
+  - Queue depth metrics
+  - Processing time metrics
+  - Error rate tracking
+
+**Tasks**: See plan document for detailed breakdown (19A: Infrastructure, 19B: Services, 19C: WebSocket, 19D: Config)
 
 ---
 
@@ -371,6 +600,34 @@ This document tracks all remaining work identified during the codebase analysis.
 ---
 
 ## TIER 3: ARCHITECTURE & QUALITY
+
+### 3.0 Engine Architecture Remediation (Phase 18.2)
+
+**Location**: `Engine/src/infrastructure/websocket.rs`, `Engine/src/application/services/`
+
+**Context**: WebSocket adapter contains application orchestration. This violates hexagonal architecture principles.
+
+**Status**: [⏸️] **MERGED INTO Phase 19C** - WebSocket refactoring will be completed as part of Phase 19C (Queue System Integration)
+
+**Current State**:
+- ✅ Phase 18.2.1-18.2.2 Complete: SessionManagementPort, PlayerActionService, ApprovalService created
+- ✅ Phase 18.2.3 Partial: Ports implemented on SessionManager
+- ⏸️ Phase 18.2.3 Remaining: WebSocket handler refactoring **deferred to Phase 19C**
+
+**Why Merged with Phase 19**:
+- Phase 19 queue system solves the lock pattern problem that blocked Phase 18.2.3
+- WebSocket refactoring requires queue infrastructure anyway
+- More efficient to do both together
+
+**What Will Be Done in Phase 19C**:
+- Refactor `websocket.rs` to use queue services
+- Remove orchestration from WebSocket adapter
+- WebSocket becomes thin adapter: parse → enqueue → return
+- Worker tasks handle processing (no locks held across async boundaries)
+
+**Reference**: See `architecture_plan.md` Phase 18.2 and `lock_refactoring_analysis.md`
+
+---
 
 ### 3.1 Domain-Driven Design Patterns (Engine)
 
@@ -1532,3 +1789,5 @@ A task is complete when:
 | 2025-12-12 | **Phase 15A-B Complete**: Routing & Navigation. Added Dioxus Router with 7 routes (MainMenu, RoleSelect, WorldSelect, DMView, PCView, SpectatorView, NotFound). New `routes.rs` (469 lines) with route components that wrap presentation views. main.rs reduced from 538 to 66 lines. Navigation uses `navigator().push()` instead of signal-based switching. Route guards handle missing state, connection logic moved to route components. NotFound page with 404 display and home link. |
 | 2025-12-12 | **Phase 15 Complete**: All routing tasks done. **15C**: localStorage persistence (`storage.rs`), dynamic page titles via `set_page_title()`. **15D**: `wrldbldr://` URL scheme assets for macOS (Info.plist), Windows (registry), Linux (.desktop). URL parser in `url_handler.rs` with 8 unit tests. **15E**: Mobile deep linking documented in `docs/DEEP_LINKING.md` with Android/iOS examples. |
 | 2025-12-12 | **Phase 17 (Story Arc) Added**: Comprehensive plan for past events timeline and future narrative events system. 28 tasks across 7 sub-phases: Domain Foundation (17A), Story Events Backend (17B), Narrative Events Backend (17C), LLM Integration (17D), Story Arc Tab UI (17E), Narrative Event UI (17F), Event Chains & Polish (17G). New entities: StoryEvent (13 event types), NarrativeEvent (14 trigger types, branching outcomes), EventChain. New UI: Story Arc tab (4th DM tab), Timeline view, Narrative Event Designer, Event Chain Visualizer, Pending Events Widget. Detailed plan in `plans/17-story-arc.md`. |
+| 2025-12-14 | **Phase 19 (Queue System) Analysis**: Validated queue system architecture. Created comprehensive analysis documents: `narrative_event_form_analysis.md`, `director_decision_queue_analysis.md`, `unified_generation_queue_analysis.md`, `queue_system_architecture_validation.md`. Identified Phase 19 as current priority - solves lock pattern issues and enables Phase 15/16. Updated ROADMAP.md with clear implementation order and dependencies. Phase 18.2.3 (WebSocket refactoring) merged into Phase 19C. Phase 15 (Generation Queue) and Phase 16 (Decision Queue) marked as blocked pending Phase 19 completion. |
+| 2025-12-14 | **Phase 19 (Queue System) Analysis**: Validated queue system architecture. Created comprehensive analysis documents: `narrative_event_form_analysis.md`, `director_decision_queue_analysis.md`, `unified_generation_queue_analysis.md`, `queue_system_architecture_validation.md`. Identified Phase 19 as current priority - solves lock pattern issues and enables Phase 15/16. Updated ROADMAP.md with clear implementation order and dependencies. Phase 18.2.3 (WebSocket refactoring) merged into Phase 19C. Phase 15 (Generation Queue) and Phase 16 (Decision Queue) marked as blocked pending Phase 19 completion. |
