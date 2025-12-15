@@ -21,6 +21,12 @@ This document tracks all remaining work identified during the codebase analysis.
   - ✅ NarrativeEventSuggestionDecision handler completed
   - ✅ All WebSocket message types synchronized
   - ✅ Both Engine and Player compile successfully
+- ✅ **Event Bus Architecture Implemented** (2025-12-15):
+  - ✅ SQLite-backed event bus with pub/sub pattern
+  - ✅ AppEvent DTO for cross-cutting system events
+  - ✅ All producers wired (Story, Narrative, Challenge, Generation, Suggestions)
+  - ✅ WebSocketEventSubscriber for real-time client updates
+  - ✅ Ready for future Redis backend and advanced consumers
 - 🆕 Phase 20 (Unified Generation Queue UI) now UNBLOCKED - ready to implement
 - 🆕 Phase 16 (Decision Queue) now UNBLOCKED - ready to implement
 
@@ -679,10 +685,14 @@ With Phase 19 complete, these phases can proceed in parallel:
   - Currently: Services access entities directly
   - Goal: All mutations go through aggregate root for invariant enforcement
 
-- [ ] **3.1.2** Implement event publisher/subscriber pattern
-  - File: Create `application/events/event_bus.rs`
-  - Publish domain events when state changes
-  - Subscribe to events for audit logging, side effects
+- [x] **3.1.2** Implement event publisher/subscriber pattern ✅ (2025-12-15)
+  - ✅ Created `EventBusPort<AppEvent>` abstraction in `application/ports/outbound/`
+  - ✅ Implemented `SqliteEventBus` with `SqliteAppEventRepository`
+  - ✅ `AppEvent` DTO with 11 event types (Story, Narrative, Challenge, Generation, Suggestions)
+  - ✅ All producers wired: StoryEventService, NarrativeEventService, challenge resolution, generation
+  - ✅ WebSocketEventSubscriber maps AppEvents to ServerMessages
+  - ✅ Ready for multiple subscribers (analytics, audit, timeline projectors)
+  - See `plans/event_bus_architecture.md` for full documentation
 
 - [ ] **3.1.3** Implement use case traits in application services
   - WorldServiceImpl should implement ManageWorldUseCase
@@ -1825,3 +1835,4 @@ A task is complete when:
 | 2025-12-15 | **Code Review Remediation**: Removed unused config fields (`worker_poll_interval_ms`, `worker_error_delay_ms`). Fixed empty challenge/skill lookups in LLMQueueService - now looks up full challenge details (name, skill, difficulty) and narrative event details (name, description, scene_direction) before sending to DM approval queue. Removed 4 empty modules (`domain/services`, `infrastructure/asset_manager`, `Player/domain/services`, `Player/infrastructure/audio`). Annotated unused DDD structures (WorldAggregate, DomainEvent, use_case traits) with `#[allow(dead_code)]` and documentation explaining Phase 3.1 implementation plan. Updated Phase 3.1 status to "Partial" with existing code inventory. Added note about orphaned GenerationService in Phase 18B. |
 | 2025-12-15 | **Code Review Next Steps Complete**: Fixed all critical issues identified in code review. **GenerationService wired**: Added to AppState, instantiated with event channel, generation event broadcaster worker implemented in main.rs. **ChallengeSuggestionDecision handler completed**: Full implementation with approval item lookup, challenge loading, difficulty modification, and ChallengePrompt broadcasting. **NarrativeEventSuggestionDecision handler completed**: Full implementation with event loading, outcome selection, event triggering, StoryEvent recording, and NarrativeEventTriggered broadcasting. **WebSocket message synchronization**: Added NarrativeEventTriggered to both Engine and Player. Added get_by_id() method to DMApprovalQueueService. Both Engine and Player compile successfully. **Phase 20 and Phase 16 now fully unblocked.** |
 | 2025-12-15 | **Phase 20A (Unified Generation Queue Core)**: Routed LLM suggestions through `LLMReasoningQueue`, implemented suggestion processing in `LLMQueueService`, added `GenerationEvent::Suggestion*` and corresponding `ServerMessage::Suggestion*` WebSocket events, extended Player `GenerationState` to track suggestion tasks, updated `SuggestionButton` to enqueue instead of synchronous HTTP, and updated `GenerationQueuePanel` to show both image batches and suggestion tasks. Phase 20 now **PARTIALLY COMPLETE** (Engine complete, Player core UI implemented; advanced UX pending). |
+| 2025-12-15 | **Event Bus Architecture Implemented**: Full pub/sub infrastructure for cross-cutting system events. Created `EventBusPort<AppEvent>` abstraction with SQLite backend (`SqliteEventBus`, `SqliteAppEventRepository`), `InProcessEventNotifier` + 30s polling for resilience. Defined `AppEvent` DTO with 11 event types (Story, Narrative, Challenge, Generation, Suggestions). Refactored generation pipeline: `GenerationEvent` → `GenerationEventPublisher` → `AppEvent` → `WebSocketEventSubscriber` → `ServerMessage`. Extended all producers: `StoryEventService` (10+ methods), `NarrativeEventService.mark_triggered()`, challenge resolution in websocket, generation/suggestion events. Enhanced `GenerationEvent` with entity context. Both Engine and Player compile. Ready for Redis backend and advanced consumers (analytics, timeline projectors). Comprehensive documentation in `event_bus_architecture.md`. |
