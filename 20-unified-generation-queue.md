@@ -1,4 +1,8 @@
-# Phase 15: Unified Generation Queue (Creator Mode)
+# Phase 20: Unified Generation Queue UI (Creator Mode)
+
+> **Note**: This was originally "Phase 15" but was renamed to "Phase 20" to avoid conflict with "Phase 15: Routing & Navigation".
+>
+> **Clarification**: "Unified" refers to the **UI only** - a single panel showing tasks from both ComfyUI and LLM queues. The Engine queues remain completely separate and independent.
 
 ## Overview
 
