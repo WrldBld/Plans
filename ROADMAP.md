@@ -3,9 +3,9 @@
 This document tracks all remaining work identified during the codebase analysis. Sub-agents should use this to understand context, track progress, and coordinate implementation.
 
 **Last Updated**: 2025-12-15
-**Overall Progress**: Core gameplay complete; Queue System complete; **Code Review Fixes Complete**; **Suggestion Queue Integration Complete**; **Phase 20 (Unified Generation Queue UI) PARTIALLY COMPLETE; Phase 16 (Decision Queue) READY**
+**Overall Progress**: Core gameplay complete; Queue System complete; **Code Review Fixes Complete**; **Suggestion Queue Integration Complete**; **Phase 20 (Unified Generation Queue UI) PARTIALLY COMPLETE; Phase 16 (Decision Queue) READY**; **Pre-Feature Polish Complete**
 
-**Current Priority**: **Phase 20 (Unified Generation Queue UI)** and **Phase 16 (Decision Queue)** - Now unblocked by Phase 19 and code review fixes
+**Current Priority**: Ready for new feature development - all architectural polish complete
 
 **Key Updates** (2025-12-15):
 - ✅ Phase 19 fully implemented and code review issues resolved
@@ -27,8 +27,16 @@ This document tracks all remaining work identified during the codebase analysis.
   - ✅ All producers wired (Story, Narrative, Challenge, Generation, Suggestions)
   - ✅ WebSocketEventSubscriber for real-time client updates
   - ✅ Ready for future Redis backend and advanced consumers
+- ✅ **Pre-Feature Polish Complete** (2025-12-15):
+  - ✅ Event bus wiring consolidated (no duplicate DB connections)
+  - ✅ ChallengeResolved character_id limitation documented
+  - ✅ Engine warnings reduced from 147 to 137 (intentional remaining)
+  - ✅ Player now compiles with ZERO warnings
+  - ✅ All unused variables/imports cleaned up or annotated
+  - ✅ Known limitations documented in event_bus_architecture.md
 - 🆕 Phase 20 (Unified Generation Queue UI) now UNBLOCKED - ready to implement
 - 🆕 Phase 16 (Decision Queue) now UNBLOCKED - ready to implement
+- 🆕 Generation Queue endpoint planned: add a read-only HTTP API for **current AI work state** so the Player can reconstruct the unified generation queue (image + suggestion tasks) after reload.
 
 ---
 
@@ -326,7 +334,7 @@ With Phase 19 complete, these phases can proceed in parallel:
 **Plan**: [20-unified-generation-queue.md](./20-unified-generation-queue.md)  
 **Analysis**: [unified_generation_queue_analysis.md](./unified_generation_queue_analysis.md)
 
-**Summary**: Unify image generation and LLM suggestion requests into a single queue system in Creator Mode, with WebSocket events for real-time progress visibility.
+**Summary**: Unify image generation and LLM suggestion requests into a single queue system in Creator Mode, with WebSocket events for real-time progress visibility and per-user read-state persistence.
 
 **Location**: Creator Mode sidebar
 
@@ -354,10 +362,14 @@ With Phase 19 complete, these phases can proceed in parallel:
      - Retry/cancel/clear actions for failed/ready batches
      - Visual distinction and filtering between images vs suggestions
    - Add queue badges / counters in Creator Mode header
-2. **Phase 20C – Notifications & persistence**  
+2. **Phase 20C – Notifications & client-side persistence**  
    - Toasts for completed suggestions/batches
-   - Ensure queue state persistence across Creator Mode navigation
-3. Keep `20-unified-generation-queue.md` as the detailed design reference
+   - Ensure queue state persistence across Creator Mode navigation (signals + local storage)
+3. **Phase 20D – Backend read-state persistence (DONE in current work)**  
+   - `GET /api/generation/queue?user_id={id}` returns `is_read` flags per batch/suggestion
+   - `POST /api/generation/read-state` allows Player to mark items as read
+   - Player hydrates `GenerationState` with server-side read state and syncs read markers when items are viewed
+4. Keep `20-unified-generation-queue.md` as the detailed design reference
 
 ---
 
@@ -1836,3 +1848,4 @@ A task is complete when:
 | 2025-12-15 | **Code Review Next Steps Complete**: Fixed all critical issues identified in code review. **GenerationService wired**: Added to AppState, instantiated with event channel, generation event broadcaster worker implemented in main.rs. **ChallengeSuggestionDecision handler completed**: Full implementation with approval item lookup, challenge loading, difficulty modification, and ChallengePrompt broadcasting. **NarrativeEventSuggestionDecision handler completed**: Full implementation with event loading, outcome selection, event triggering, StoryEvent recording, and NarrativeEventTriggered broadcasting. **WebSocket message synchronization**: Added NarrativeEventTriggered to both Engine and Player. Added get_by_id() method to DMApprovalQueueService. Both Engine and Player compile successfully. **Phase 20 and Phase 16 now fully unblocked.** |
 | 2025-12-15 | **Phase 20A (Unified Generation Queue Core)**: Routed LLM suggestions through `LLMReasoningQueue`, implemented suggestion processing in `LLMQueueService`, added `GenerationEvent::Suggestion*` and corresponding `ServerMessage::Suggestion*` WebSocket events, extended Player `GenerationState` to track suggestion tasks, updated `SuggestionButton` to enqueue instead of synchronous HTTP, and updated `GenerationQueuePanel` to show both image batches and suggestion tasks. Phase 20 now **PARTIALLY COMPLETE** (Engine complete, Player core UI implemented; advanced UX pending). |
 | 2025-12-15 | **Event Bus Architecture Implemented**: Full pub/sub infrastructure for cross-cutting system events. Created `EventBusPort<AppEvent>` abstraction with SQLite backend (`SqliteEventBus`, `SqliteAppEventRepository`), `InProcessEventNotifier` + 30s polling for resilience. Defined `AppEvent` DTO with 11 event types (Story, Narrative, Challenge, Generation, Suggestions). Refactored generation pipeline: `GenerationEvent` → `GenerationEventPublisher` → `AppEvent` → `WebSocketEventSubscriber` → `ServerMessage`. Extended all producers: `StoryEventService` (10+ methods), `NarrativeEventService.mark_triggered()`, challenge resolution in websocket, generation/suggestion events. Enhanced `GenerationEvent` with entity context. Both Engine and Player compile. Ready for Redis backend and advanced consumers (analytics, timeline projectors). Comprehensive documentation in `event_bus_architecture.md`. |
+| 2025-12-15 | **Pre-Feature Polish Complete**: Consolidated event bus wiring (eliminated duplicate `SqliteAppEventRepository` creation in main.rs, now stored in `AppState`). Improved `ChallengeResolved.character_id` handling (replaced `CharacterId::new()` placeholder with `"unknown"` string sentinel). Documented known limitations in `event_bus_architecture.md` (character_id limitation, session broadcast scope). Cleaned unused variables/imports in Engine (story_event_routes.rs, asset_service.rs, queue backends) and Player (character_form.rs, location_form.rs, session_message_handler.rs). Annotated intentionally-kept code with `#[allow(dead_code)]` (GameSession methods, SessionManager stats, generation_service field). **Engine warnings reduced from 147 to 137. Player now compiles with ZERO warnings.** Codebase ready for confident feature development. |

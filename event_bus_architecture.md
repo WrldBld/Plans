@@ -343,6 +343,40 @@ pub trait EventBusPort<E: Serialize + Send + Sync + 'static>: Send + Sync {
 
 ---
 
+## Known Limitations
+
+### 1. ChallengeResolved character_id
+
+**Current State**: When publishing `AppEvent::ChallengeResolved` from the challenge roll handler in `websocket.rs`, the `character_id` field is set to `"unknown"` as a sentinel value.
+
+**Reason**: The current challenge flow does not yet integrate with character sheet data or player-to-character mappings in sessions. The WebSocket handler only knows the `ClientId` and `SessionId`, not which in-game character the player is controlling.
+
+**Impact**: 
+- Analytics or projections consuming `ChallengeResolved` events will not be able to attribute challenges to specific characters.
+- Not a blocker for WebSocket clients, as they receive `ServerMessage::ChallengeResolved` with `character_name` derived from `ClientId`.
+
+**Resolution Path**: 
+- Phase 14C (Character Sheet Templates) will introduce full character sheet integration.
+- At that point, sessions will maintain a `participant_id → character_id` mapping.
+- Update the challenge roll handler to look up the real `character_id` from this mapping.
+
+### 2. WebSocketEventSubscriber broadcasts to all sessions
+
+**Current State**: The `WebSocketEventSubscriber` broadcasts all `AppEvent`-derived `ServerMessage`s to **every active session**.
+
+**Reason**: The initial implementation prioritizes correctness and simplicity. Filtering by `world_id` or `session_id` requires additional session/world context tracking in the subscriber.
+
+**Impact**:
+- Minor: Clients receive events for worlds/sessions they're not in (they typically ignore them).
+- Performance: Negligible with current scale (few concurrent sessions).
+
+**Resolution Path**:
+- Add world/session filtering logic to `WebSocketEventSubscriber.map_to_server_message()`.
+- Optionally: Extend `SessionManager` with `get_sessions_for_world(world_id)` helper.
+- This is a performance optimization, not a correctness issue.
+
+---
+
 ## Future Work
 
 1. **Redis Backend**:

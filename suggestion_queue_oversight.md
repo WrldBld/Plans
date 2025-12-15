@@ -107,6 +107,7 @@ The following fixes have been implemented in the codebase:
   - Added `ServerMessage::Suggestion*` variants and handled them in `session_message_handler.rs` to update `GenerationState`.
   - Updated `SuggestionButton` to call a new `SuggestionService::enqueue_suggestion()` method and rely on queue/WebSocket events rather than synchronous HTTP.
   - Updated `GenerationQueuePanel` to display both image batches and suggestion tasks in a unified queue UI.
+  - UX requirement: Clicking **“View”** on a suggestion task must either (preferred) navigate back to the originating form field (character/location/item/map/event, etc.) and show the standard suggestion UI there, or (fallback) open a contextual modal that clearly labels the entity + field being edited and allows applying a suggestion without losing the original options.
 
 The remainder of this document describes the original problem and design; it no longer reflects the current “issue” status but remains accurate as a design rationale.
 

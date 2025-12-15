@@ -53,6 +53,10 @@ WrldBldr has **two distinct queue systems** for different purposes:
 - Suggestion results can be selected to populate the target field
 - Failed requests show error messages in queue
 - Queue persists across panel navigation within Creator Mode
+- After a page reload, the unified generation queue is **reconstructed from the Engine** via a read-only endpoint (e.g. `/api/generation/queue`), so in-flight and recently-completed items are visible again.
+- Clicking **“View”** on a suggestion task does **not** lose context:
+  - **Preferred**: Navigates back to the originating form (character/location/item/map/event, etc.) and focuses the target field, showing the normal suggestion UI for that field.
+  - **Fallback (if navigation is hard)**: Opens a modal that clearly labels the target entity + field (e.g. “Character Name for Aria Windwalker”) and allows applying a suggestion from there.
 
 ---
 
@@ -294,9 +298,23 @@ impl SuggestionQueue {
   - Show toast when suggestion completes
   - "3 name suggestions ready" with link to queue
 
-- [ ] **15C.3** Persist queue state across navigation
+- [x] **15C.3** Persist queue state across navigation and reloads
   - Queue survives panel switches within Creator Mode
-  - Clear queue on exit from Creator Mode
+  - Creator Mode hydrates `GenerationState` from Engine snapshot (`GET /api/generation/queue`)
+  - Local client storage keeps state between navigations
+
+### Phase 15D: Read-State Persistence (Per-User, Cross-Device)
+
+- [x] **15D.1** Engine-side read-state repository
+  - `GenerationReadStatePort` with SQLite-backed implementation
+  - Table `generation_read_state(user_id, entity_type, item_id, read_at)`
+- [x] **15D.2** Read-state HTTP API
+  - Extend `GET /api/generation/queue?user_id={id}` to include `is_read` flags on batches and suggestions
+  - Add `POST /api/generation/read-state` to mark batches and suggestions as read for a given `user_id`
+- [x] **15D.3** Player integration
+  - `hydrate_generation_queue` passes `SessionState.user_id` to `/api/generation/queue`
+  - `GenerationQueuePanel` posts to `/api/generation/read-state` when items are viewed/selected
+  - Local storage remains a secondary cache; Engine is source of truth for cross-device behavior
 
 ---
 
