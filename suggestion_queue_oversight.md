@@ -1,8 +1,10 @@
 # Critical Oversight: LLM Suggestions Not Using Queue System
 
 **Date**: 2025-12-15  
-**Status**: **CRITICAL ISSUE IDENTIFIED**  
-**Priority**: **HIGH** - Blocks Phase 20 implementation
+**Status**: ✅ **RESOLVED** (as of 2025-12-15, see Engine commit `249ed62` and Player commit `ce6c89f`)  
+**Priority**: (Historical) Was **HIGH** – originally blocked Phase 20 until fixed
+
+> This document is now a **postmortem / design record**. The fixes described here have been implemented in Engine and Player; see Phase 20 section in `ROADMAP.md` and `20-unified-generation-queue.md` for current state.
 
 ---
 
@@ -26,19 +28,19 @@
 ✅ **Queue workers** - Background processing infrastructure ready  
 ✅ **WebSocket infrastructure** - Event broadcasting ready  
 
-### What's MISSING (The Gap)
+### What's MISSING (The Gap) – Original State (Now Fixed)
 
-❌ **HTTP routes bypass queue** - `suggestion_routes.rs` calls `SuggestionService` directly  
-❌ **No enqueue logic** - Suggestions never enter `LLMReasoningQueue`  
-❌ **LLMQueueService TODO** - Suggestion handler just logs and completes (doesn't process)  
+❌ **HTTP routes bypass queue** - `suggestion_routes.rs` called `SuggestionService` directly  
+❌ **No enqueue logic** - Suggestions never entered `LLMReasoningQueue`  
+❌ **LLMQueueService TODO** - Suggestion handler just logged and completed (didn't process)  
 ❌ **No WebSocket events** - No `SuggestionQueued`, `SuggestionProgress`, `SuggestionComplete` events  
-❌ **No unified queue visibility** - Suggestions don't appear in GenerationQueuePanel  
+❌ **No unified queue visibility** - Suggestions didn't appear in GenerationQueuePanel  
 
 ---
 
-## Evidence from Codebase
+## Evidence from Codebase (Historical)
 
-### Engine: Suggestion Routes (Current - WRONG)
+### Engine: Suggestion Routes (Original - WRONG)
 
 ```rust
 // Engine/src/infrastructure/http/suggestion_routes.rs
@@ -56,7 +58,7 @@ pub async fn suggest_character_names(
 
 **Problem**: This is synchronous - blocks HTTP request until LLM responds.
 
-### Engine: LLMQueueService (Current - INCOMPLETE)
+### Engine: LLMQueueService (Original - INCOMPLETE)
 
 ```rust
 // Engine/src/application/services/llm_queue_service.rs:338-342
@@ -71,7 +73,7 @@ LLMRequestType::Suggestion { .. } => {
 
 **Problem**: Handler exists but doesn't actually call `SuggestionService` or send results.
 
-### Player: SuggestionButton (Current - SYNCHRONOUS)
+### Player: SuggestionButton (Original - SYNCHRONOUS)
 
 ```rust
 // Player/src/presentation/components/creator/suggestion_button.rs:58-97
@@ -91,7 +93,28 @@ spawn(async move {
 
 ---
 
-## Required Changes
+## Resolution Summary (Implemented)
+
+The following fixes have been implemented in the codebase:
+
+- **Engine**:
+  - Updated `suggestion_routes.rs` so `/api/suggest` enqueues `LLMRequestItem { request_type: LLMRequestType::Suggestion { .. } }` into `LLMReasoningQueue` and returns `{ request_id, status: "queued" }` immediately.
+  - Extended `LLMQueueService` to process `LLMRequestType::Suggestion`, call `SuggestionService`, and emit `GenerationEvent::SuggestionQueued`, `SuggestionProgress`, `SuggestionComplete`, and `SuggestionFailed`.
+  - Mapped `GenerationEvent::Suggestion*` to `ServerMessage::Suggestion*` in the generation event broadcaster in `main.rs`.
+
+- **Player**:
+  - Extended `GenerationState` to track `SuggestionTask` and `SuggestionStatus` alongside image `GenerationBatch`.
+  - Added `ServerMessage::Suggestion*` variants and handled them in `session_message_handler.rs` to update `GenerationState`.
+  - Updated `SuggestionButton` to call a new `SuggestionService::enqueue_suggestion()` method and rely on queue/WebSocket events rather than synchronous HTTP.
+  - Updated `GenerationQueuePanel` to display both image batches and suggestion tasks in a unified queue UI.
+
+The remainder of this document describes the original problem and design; it no longer reflects the current “issue” status but remains accurate as a design rationale.
+
+---
+
+## Required Changes (Historical Plan)
+
+> **Note**: The required changes described in this section have been implemented and integrated. This section remains for historical purposes.
 
 ### 1. Engine: Route Suggestions Through Queue
 

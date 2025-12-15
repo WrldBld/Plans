@@ -3,7 +3,7 @@
 This document tracks all remaining work identified during the codebase analysis. Sub-agents should use this to understand context, track progress, and coordinate implementation.
 
 **Last Updated**: 2025-12-15
-**Overall Progress**: Core gameplay complete; Queue System complete; **Code Review Fixes Complete**; **Ready for Phase 20 (Unified Generation Queue UI) and Phase 16 (Decision Queue)**
+**Overall Progress**: Core gameplay complete; Queue System complete; **Code Review Fixes Complete**; **Suggestion Queue Integration Complete**; **Phase 20 (Unified Generation Queue UI) PARTIALLY COMPLETE; Phase 16 (Decision Queue) READY**
 
 **Current Priority**: **Phase 20 (Unified Generation Queue UI)** and **Phase 16 (Decision Queue)** - Now unblocked by Phase 19 and code review fixes
 
@@ -324,24 +324,34 @@ With Phase 19 complete, these phases can proceed in parallel:
 
 **Location**: Creator Mode sidebar
 
-**Status**: [ ] **READY TO IMPLEMENT** - Phase 19 complete, all dependencies met
+**Status**: 🔄 **PARTIALLY COMPLETE** (as of 2025-12-15)  
 
 **Current State**: 
 - ✅ Image generation uses queue system (GenerationState, WebSocket events)
 - ✅ LLMReasoningQueue infrastructure available (via Phase 19)
 - ✅ AssetGenerationQueue infrastructure available (via Phase 19)
-- ⚠️ **CRITICAL**: LLM suggestions bypass queue - routes call SuggestionService directly (synchronous)
-- ⚠️ **CRITICAL**: LLMQueueService has placeholder for suggestions but doesn't process them
-- ❌ No WebSocket events for suggestions (SuggestionQueued, SuggestionComplete, etc.)
-- ❌ No unified queue UI showing both types
+- ✅ LLM suggestions are routed through `LLMReasoningQueue` (no longer synchronous HTTP)
+- ✅ Suggestion processing is handled in `LLMQueueService` and emits `GenerationEvent::Suggestion*`
+- ✅ WebSocket events for suggestions (`SuggestionQueued`, `SuggestionProgress`, `SuggestionComplete`, `SuggestionFailed`) are implemented
+- ✅ Player tracks both image batches and suggestion tasks in `GenerationState`
+- ✅ Unified Generation Queue UI shows **both** images and suggestions in Creator Mode sidebar
+- ❌ Advanced queue UX (ComfyUI health banner, retry/cancel/clear UI, detailed error expansion) still pending
 
 **Dependencies**: 
 - ✅ Phase 19 complete - LLMReasoningQueue and AssetGenerationQueue now available
-- ⚠️ **BLOCKER**: Must fix suggestion queue integration first (see `suggestion_queue_oversight.md`)
+- ✅ Suggestion queue integration implemented (see `suggestion_queue_oversight.md` and `20-unified-generation-queue.md`)
 
 **Tasks**: 
-1. **CRITICAL FIX**: Route suggestions through LLMReasoningQueue (see `suggestion_queue_oversight.md`)
-2. Then proceed with Phase 20 UI work (see [20-unified-generation-queue.md](./20-unified-generation-queue.md))
+1. **Phase 20B – Player UX polish (remaining)**  
+   - Enhance `GenerationQueuePanel` with:
+     - Error details expansion
+     - Retry/cancel/clear actions for failed/ready batches
+     - Visual distinction and filtering between images vs suggestions
+   - Add queue badges / counters in Creator Mode header
+2. **Phase 20C – Notifications & persistence**  
+   - Toasts for completed suggestions/batches
+   - Ensure queue state persistence across Creator Mode navigation
+3. Keep `20-unified-generation-queue.md` as the detailed design reference
 
 ---
 
@@ -1814,3 +1824,4 @@ A task is complete when:
 | 2025-12-15 | **Phase 19 COMPLETE + Code Cleanup**: All 5 queue services operational (PlayerActionQueue, DMActionQueue, LLMReasoningQueue, AssetGenerationQueue, DMApprovalQueue). Background workers spawned in main.rs. Health check endpoint at `/api/health/queues`. Fixed compilation errors in Engine (lifetime issues in run_worker methods, 'static bounds). Fixed Player clippy error in challenge_library.rs (`*value <= 0` → `*value == 0` for u32). Renamed "Phase 15 Generation Queue" to **Phase 20** to avoid conflict with "Phase 15 Routing & Navigation". **Phase 20 and Phase 16 now UNBLOCKED.** |
 | 2025-12-15 | **Code Review Remediation**: Removed unused config fields (`worker_poll_interval_ms`, `worker_error_delay_ms`). Fixed empty challenge/skill lookups in LLMQueueService - now looks up full challenge details (name, skill, difficulty) and narrative event details (name, description, scene_direction) before sending to DM approval queue. Removed 4 empty modules (`domain/services`, `infrastructure/asset_manager`, `Player/domain/services`, `Player/infrastructure/audio`). Annotated unused DDD structures (WorldAggregate, DomainEvent, use_case traits) with `#[allow(dead_code)]` and documentation explaining Phase 3.1 implementation plan. Updated Phase 3.1 status to "Partial" with existing code inventory. Added note about orphaned GenerationService in Phase 18B. |
 | 2025-12-15 | **Code Review Next Steps Complete**: Fixed all critical issues identified in code review. **GenerationService wired**: Added to AppState, instantiated with event channel, generation event broadcaster worker implemented in main.rs. **ChallengeSuggestionDecision handler completed**: Full implementation with approval item lookup, challenge loading, difficulty modification, and ChallengePrompt broadcasting. **NarrativeEventSuggestionDecision handler completed**: Full implementation with event loading, outcome selection, event triggering, StoryEvent recording, and NarrativeEventTriggered broadcasting. **WebSocket message synchronization**: Added NarrativeEventTriggered to both Engine and Player. Added get_by_id() method to DMApprovalQueueService. Both Engine and Player compile successfully. **Phase 20 and Phase 16 now fully unblocked.** |
+| 2025-12-15 | **Phase 20A (Unified Generation Queue Core)**: Routed LLM suggestions through `LLMReasoningQueue`, implemented suggestion processing in `LLMQueueService`, added `GenerationEvent::Suggestion*` and corresponding `ServerMessage::Suggestion*` WebSocket events, extended Player `GenerationState` to track suggestion tasks, updated `SuggestionButton` to enqueue instead of synchronous HTTP, and updated `GenerationQueuePanel` to show both image batches and suggestion tasks. Phase 20 now **PARTIALLY COMPLETE** (Engine complete, Player core UI implemented; advanced UX pending). |
