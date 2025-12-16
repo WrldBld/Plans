@@ -5,7 +5,7 @@ This document tracks all remaining work identified during the codebase analysis.
 **Last Updated**: 2025-12-15
 **Overall Progress**: Core gameplay complete; Queue System complete; **Code Review Fixes Complete**; **Suggestion Queue Integration Complete**; **Phase 20 (Unified Generation Queue UI) PARTIALLY COMPLETE (50%)**; Phase 16 (Decision Queue) READY; **Pre-Feature Polish Complete**; **Anonymous Users & Session Management Complete**; **Phase 21 (Player Character Creation) COMPLETE** ✅
 
-**Current Priority**: Phase 20 polish (1-2 weeks) → Phase 16 (Director Decision Queue, 3-4 weeks)
+**Current Priority**: Phase 16 (Director Decision Queue, 3-4 weeks) - Ready to implement
 
 **Key Updates** (2025-12-15):
 - ✅ Phase 19 fully implemented and code review issues resolved
@@ -125,7 +125,7 @@ Phase 19 is now **COMPLETE** (2025-12-15). All queue infrastructure is operation
 - Routing & Navigation (Player) - Phase 15 ✅
 - Story Arc (Both) - Phase 17 (partial - 17G remaining)
 - ComfyUI Enhancements (Both) - Phase 18 (partial - all sub-phases pending)
-- **Unified Generation Queue UI (Both) - Phase 20** ⚠️ **READY TO IMPLEMENT** (50% complete)
+- **Unified Generation Queue UI (Both) - Phase 20** ✅ **COMPLETE**
 - **Director Decision Queue (Both) - Phase 16** ⚠️ **READY TO IMPLEMENT**
 - **Player Character Creation & Scene Navigation (Both) - Phase 21** ✅ **COMPLETE**
 

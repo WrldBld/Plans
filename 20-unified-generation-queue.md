@@ -10,11 +10,9 @@ WrldBldr uses AI generation for two distinct purposes:
 1. **Image Generation** via ComfyUI workflows (character portraits, location backdrops)
 2. **LLM Suggestions** via Ollama (names, descriptions, wants, backstories, etc.)
 
-Currently these systems operate independently:
-- Image generation uses a queue with WebSocket events for progress
-- LLM suggestions are synchronous HTTP requests with inline loading spinners
+**Status**: [x] **COMPLETE**
 
-This phase unifies both under a single Generation Queue system, providing consistent UX and better visibility into all pending AI work.
+This phase unifies both under a single Generation Queue system, providing consistent UX and better visibility into all pending AI work. All features have been implemented including cancel/retry, sorting, navigation, and error handling polish.
 
 ---
 
@@ -231,74 +229,84 @@ impl SuggestionQueue {
 
 ## Implementation Tasks
 
-### Phase 15A: Engine Changes
+### Phase 20A: Engine Changes
 
-- [ ] **15A.1** Create GenerationEvent enum
-  - File: `Engine/src/domain/events/generation_events.rs` (new)
-  - Add image and suggestion event variants
-  - Serialize with `#[serde(tag = "type")]` for WebSocket
+- [x] **20A.1** Create GenerationEvent enum ✅
+  - Implemented via GenerationEvent in generation_service.rs
+  - Includes SuggestionQueued, SuggestionProgress, SuggestionComplete, SuggestionFailed
 
-- [ ] **15A.2** Create SuggestionQueue service
-  - File: `Engine/src/application/services/suggestion_queue.rs` (new)
-  - Background worker for processing queued suggestions
-  - Rate limiting to prevent Ollama overload
-  - Retry logic for transient failures
+- [x] **20A.2** Queue suggestions via LLMQueueService ✅
+  - Suggestions routed through LLMReasoningQueue
+  - Background worker processes with concurrency control
+  - Events broadcast via GenerationEvent channel
 
-- [ ] **15A.3** Update suggestion routes to queue instead of sync
-  - File: `Engine/src/infrastructure/http/suggestion_routes.rs`
-  - Return `{ request_id: String }` immediately
-  - Enqueue request for async processing
-  - Keep existing sync behavior as fallback option
+- [x] **20A.3** Update suggestion routes to queue ✅
+  - `/api/suggest` endpoint queues requests
+  - Returns `{ request_id, status }` immediately
+  - Async processing via LLMQueueService
 
-- [ ] **15A.4** Broadcast generation events via WebSocket
-  - File: `Engine/src/infrastructure/websocket.rs`
-  - Subscribe to GenerationEvent channel
-  - Forward events to appropriate session clients
+- [x] **20A.4** Broadcast generation events via WebSocket ✅
+  - GenerationEvent channel integrated
+  - WebSocketEventSubscriber forwards to clients
+  - Real-time updates for all generation tasks
 
-### Phase 15B: Player Changes
+- [x] **20A.5** Cancel/Retry endpoints ✅
+  - `/api/suggest/{request_id}/cancel` - Cancel pending suggestions
+  - `/api/assets/batch/{batch_id}/retry` - Retry failed batches
+  - Cancel method in LLMQueueService
 
-- [ ] **15B.1** Extend GenerationState for suggestions
-  - File: `Player/src/presentation/state/generation_state.rs`
-  - Add `GenerationType` enum with Image/Suggestion variants
-  - Add `SuggestionFieldType` for categorizing requests
-  - Add `GenerationResult` enum for results
+### Phase 20B: Player Changes
 
-- [ ] **15B.2** Handle suggestion WebSocket events
-  - File: `Player/src/infrastructure/websocket/handlers.rs`
-  - Parse SuggestionQueued, SuggestionProgress, SuggestionComplete, SuggestionFailed
-  - Update GenerationState accordingly
+- [x] **20B.1** Extend GenerationState for suggestions ✅
+  - SuggestionTask struct with context storage
+  - SuggestionStatus enum (Queued, Processing, Ready, Failed)
+  - Context stored for retry functionality
 
-- [ ] **15B.3** Create unified GenerationQueue component
-  - File: `Player/src/presentation/components/creator/generation_queue.rs` (new)
-  - Shows all generation tasks in a single list
+- [x] **20B.2** Handle suggestion WebSocket events ✅
+  - SessionMessageHandler processes Suggestion* events
+  - Updates GenerationState accordingly
+  - Real-time status updates
+
+- [x] **20B.3** Create unified GenerationQueue component ✅
+  - GenerationQueuePanel shows all tasks
   - Filter tabs: All, Images, Suggestions
-  - Expandable cards showing results
-  - Progress indicators per task
+  - Status indicators and progress bars
+  - Expandable error details
 
-- [ ] **15B.4** Update SuggestionButton to use queue
-  - File: `Player/src/presentation/components/creator/suggestion_button.rs`
-  - Add task to GenerationState when clicked
-  - Show "queued" indicator instead of loading spinner
-  - Disable button while task pending for same field
+- [x] **20B.4** Update SuggestionButton to use queue ✅
+  - Enqueues via SuggestionService.enqueue_suggestion()
+  - Shows "Queued..." indicator
+  - Stores context for retry
 
-- [ ] **15B.5** Add suggestion result selection
-  - File: `Player/src/presentation/components/creator/generation_queue.rs`
-  - Clicking a suggestion result populates target field
-  - Visual feedback on selection
-  - Auto-collapse card after selection
+- [x] **20B.5** Add suggestion result selection ✅
+  - SuggestionViewModal for viewing results
+  - Click to view and apply suggestions
+  - Navigation to originating form
 
-### Phase 15C: Polish & Integration
+- [x] **20B.6** Cancel/Retry functionality ✅
+  - Cancel buttons for batches and suggestions
+  - Retry buttons for failed items
+  - Context stored for suggestion retry
 
-- [ ] **15C.1** Queue visibility in Creator Mode header
-  - File: `Player/src/presentation/views/creator_view.rs`
-  - Show badge with pending task count
-  - Click to expand queue panel
+### Phase 20C: Polish & Integration
 
-- [ ] **15C.2** Toast notifications for completion
-  - Show toast when suggestion completes
-  - "3 name suggestions ready" with link to queue
+- [x] **20C.1** Sorting options ✅
+  - Sort dropdown: Newest First, Oldest First, By Status, By Type
+  - Status priority sorting (active items first)
+  - Type-based sorting
 
-- [x] **15C.3** Persist queue state across navigation and reloads
+- [x] **20C.2** Navigation to originating form ✅
+  - "Select" button navigates to entity
+  - "View" button for suggestions navigates to entity
+  - Entity selection via callback
+
+- [x] **20C.3** Error handling polish ✅
+  - Enhanced error display with icons
+  - Expandable error details
+  - Monospace font for error messages
+  - Better visual hierarchy
+
+- [x] **20C.4** Persist queue state across navigation and reloads ✅
   - Queue survives panel switches within Creator Mode
   - Creator Mode hydrates `GenerationState` from Engine snapshot (`GET /api/generation/queue`)
   - Local client storage keeps state between navigations
@@ -363,5 +371,5 @@ Existing suggestion endpoints (`/api/suggest/character/name`, etc.) will:
 
 - **Batch suggestions**: Generate multiple field suggestions in one request
 - **Priority queue**: Allow users to prioritize certain requests
-- **Cancel requests**: Allow users to cancel pending suggestions
 - **Suggestion history**: Remember past suggestions for re-use
+- **Entity pre-selection**: Automatically select entity when navigating from queue
