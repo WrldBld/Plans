@@ -3,9 +3,9 @@
 This document tracks all remaining work identified during the codebase analysis. Sub-agents should use this to understand context, track progress, and coordinate implementation.
 
 **Last Updated**: 2025-12-15
-**Overall Progress**: Core gameplay complete; Queue System complete; **Code Review Fixes Complete**; **Suggestion Queue Integration Complete**; **Phase 20 (Unified Generation Queue UI) PARTIALLY COMPLETE; Phase 16 (Decision Queue) READY**; **Pre-Feature Polish Complete**; **Anonymous Users & Session Management Complete**
+**Overall Progress**: Core gameplay complete; Queue System complete; **Code Review Fixes Complete**; **Suggestion Queue Integration Complete**; **Phase 20 (Unified Generation Queue UI) PARTIALLY COMPLETE (50%)**; Phase 16 (Decision Queue) READY; **Pre-Feature Polish Complete**; **Anonymous Users & Session Management Complete**; **Phase 21 (Player Character Creation) COMPLETE** ✅
 
-**Current Priority**: Ready for new feature development - all architectural polish complete
+**Current Priority**: Phase 20 polish (1-2 weeks) → Phase 16 (Director Decision Queue, 3-4 weeks)
 
 **Key Updates** (2025-12-15):
 - ✅ Phase 19 fully implemented and code review issues resolved
@@ -56,21 +56,18 @@ This document tracks all remaining work identified during the codebase analysis.
 
 Phase 19 is now **COMPLETE** (2025-12-15). All queue infrastructure is operational.
 
-### Immediate Priority: Phase 20 + Phase 16 (Now Unblocked)
+### Immediate Priority: Phase 20 Polish → Phase 16
 
-With Phase 19 complete, these phases can proceed in parallel:
+**Phase 20: Unified Generation Queue UI** (50% complete)
+- ✅ Engine complete (LLMReasoningQueue + AssetGenerationQueue integrated)
+- ✅ Player core UI complete (unified queue panel, real-time updates)
+- ⏳ **Remaining**: Advanced UX (cancel/retry, filtering, sorting), error handling polish
+- **Estimated**: 1-2 weeks to complete
 
-**Phase 20: Unified Generation Queue UI** (formerly "Phase 15 Generation Queue")
-- Builds on LLMReasoningQueue + AssetGenerationQueue (now available)
-- Unify image + suggestion queues in Creator Mode sidebar
-- Frontend queue UI with real-time WebSocket events
-- See Section 2.1b for details
-
-**Phase 16: Director Decision Queue**
-- Builds on DMApprovalQueue (now available)
-- Frontend decision queue UI in Director Mode sidebar
-- History, filtering, and keyboard shortcuts
-- See Section 2.1c for details
+**Phase 16: Director Decision Queue** (0% complete, backend ready)
+- ✅ Backend ready (DMApprovalQueue operational)
+- ⏳ **Remaining**: Frontend decision queue UI in Director Mode sidebar
+- **Estimated**: 3-4 weeks to implement
 
 **Optional Parallel Work**:
 - **Phase 18B** (Generation Event Wiring) - Critical for real-time asset generation feedback
@@ -128,9 +125,9 @@ With Phase 19 complete, these phases can proceed in parallel:
 - Routing & Navigation (Player) - Phase 15 ✅
 - Story Arc (Both) - Phase 17 (partial - 17G remaining)
 - ComfyUI Enhancements (Both) - Phase 18 (partial - all sub-phases pending)
-- **Unified Generation Queue UI (Both) - Phase 20** ⚠️ **READY TO IMPLEMENT**
+- **Unified Generation Queue UI (Both) - Phase 20** ⚠️ **READY TO IMPLEMENT** (50% complete)
 - **Director Decision Queue (Both) - Phase 16** ⚠️ **READY TO IMPLEMENT**
-- **Player Character Creation & Scene Navigation (Both) - Phase 21** 🔄 **IN PROGRESS**
+- **Player Character Creation & Scene Navigation (Both) - Phase 21** ✅ **COMPLETE**
 
 ### Tier 5: Future Features
 - Tactical Combat (Both)
