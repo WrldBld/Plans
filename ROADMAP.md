@@ -3,7 +3,7 @@
 This document tracks all remaining work identified during the codebase analysis. Sub-agents should use this to understand context, track progress, and coordinate implementation.
 
 **Last Updated**: 2025-12-15
-**Overall Progress**: Core gameplay complete; Queue System complete; **Code Review Fixes Complete**; **Suggestion Queue Integration Complete**; **Phase 20 (Unified Generation Queue UI) PARTIALLY COMPLETE; Phase 16 (Decision Queue) READY**; **Pre-Feature Polish Complete**
+**Overall Progress**: Core gameplay complete; Queue System complete; **Code Review Fixes Complete**; **Suggestion Queue Integration Complete**; **Phase 20 (Unified Generation Queue UI) PARTIALLY COMPLETE; Phase 16 (Decision Queue) READY**; **Pre-Feature Polish Complete**; **Anonymous Users & Session Management Complete**
 
 **Current Priority**: Ready for new feature development - all architectural polish complete
 
@@ -34,6 +34,16 @@ This document tracks all remaining work identified during the codebase analysis.
   - ✅ Player now compiles with ZERO warnings
   - ✅ All unused variables/imports cleaned up or annotated
   - ✅ Known limitations documented in event_bus_architecture.md
+- ✅ **Anonymous Users & Session Management Complete** (2025-12-15):
+  - ✅ Stable, locally persisted `user_id` in Player (via Platform/storage)
+  - ✅ Deterministic session model: DM sessions use `DM_ID_WORLD_ID` format
+  - ✅ Session HTTP APIs: `GET /api/sessions`, `POST /api/worlds/{id}/sessions`
+  - ✅ Role-aware session flows: DMs start/continue sessions, Players/Spectators join active sessions
+  - ✅ Session-aware queues: All queue items carry `session_id`, workers implement per-session fairness
+  - ✅ Session-scoped event bus: `AppEvent` includes optional `session_id`, `WebSocketEventSubscriber` routes by session
+  - ✅ Generation queue projection service: Unified snapshot from AssetService, AppEventRepository, GenerationReadStatePort
+  - ✅ Player-side read-state sync: `sync_generation_read_state` helper with world scoping
+  - ✅ Decision history improvements: Real timestamps via Platform, centralized `record_approval_decision` logic
 - 🆕 Phase 20 (Unified Generation Queue UI) now UNBLOCKED - ready to implement
 - 🆕 Phase 16 (Decision Queue) now UNBLOCKED - ready to implement
 - 🆕 Generation Queue endpoint planned: add a read-only HTTP API for **current AI work state** so the Player can reconstruct the unified generation queue (image + suggestion tasks) after reload.
@@ -120,6 +130,7 @@ With Phase 19 complete, these phases can proceed in parallel:
 - ComfyUI Enhancements (Both) - Phase 18 (partial - all sub-phases pending)
 - **Unified Generation Queue UI (Both) - Phase 20** ⚠️ **READY TO IMPLEMENT**
 - **Director Decision Queue (Both) - Phase 16** ⚠️ **READY TO IMPLEMENT**
+- **Player Character Creation & Scene Navigation (Both) - Phase 21** 🔄 **IN PROGRESS**
 
 ### Tier 5: Future Features
 - Tactical Combat (Both)
@@ -349,6 +360,10 @@ With Phase 19 complete, these phases can proceed in parallel:
 - ✅ WebSocket events for suggestions (`SuggestionQueued`, `SuggestionProgress`, `SuggestionComplete`, `SuggestionFailed`) are implemented
 - ✅ Player tracks both image batches and suggestion tasks in `GenerationState`
 - ✅ Unified Generation Queue UI shows **both** images and suggestions in Creator Mode sidebar
+- ✅ **Session-aware queues**: All generation items scoped by `session_id` (2025-12-15)
+- ✅ **Generation queue projection**: `GenerationQueueProjectionService` builds unified snapshot from multiple sources (2025-12-15)
+- ✅ **Read-state persistence**: Per-user, per-world read markers with backend sync (2025-12-15)
+- ✅ **View-model helpers**: `TimelineViewModel`, `mark_batch_read_and_sync`, `mark_suggestion_read_and_sync` (2025-12-15)
 - ❌ Advanced queue UX (ComfyUI health banner, retry/cancel/clear UI, detailed error expansion) still pending
 
 **Dependencies**: 
@@ -389,6 +404,8 @@ With Phase 19 complete, these phases can proceed in parallel:
 - ✅ Basic approval workflow (Accept/Modify/Reject/TakeOver) works
 - ✅ DMApprovalQueue infrastructure available (via Phase 19)
 - ✅ DMApprovalQueueService with history, delay, expiration features
+- ✅ **Session-aware queues**: All approval items scoped by `session_id` (2025-12-15)
+- ✅ **Decision history improvements**: Real timestamps, centralized recording logic (2025-12-15)
 - ❌ No decision queue UI in Director Mode
 - ❌ No WebSocket events for decision queue status
 
@@ -439,8 +456,10 @@ With Phase 19 complete, these phases can proceed in parallel:
 - ✅ History tracking for approvals
 - ✅ WebSocket handlers enqueue and return immediately (no locks held)
 - ✅ Background workers for all queue processing
-- ✅ Health check endpoint: `GET /api/health/queues`
+- ✅ Health check endpoint: `GET /api/health/queues` with per-session metrics (2025-12-15)
 - ✅ Cleanup worker for old items
+- ✅ **Session-aware scheduling**: Per-session fairness prevents starvation (2025-12-15)
+- ✅ **Session-scoped queue items**: All queue items carry `session_id` for proper isolation (2025-12-15)
 
 **Enabled Phases**:
 - ✅ Phase 20 (Unified Generation Queue) - Now unblocked
@@ -704,6 +723,7 @@ With Phase 19 complete, these phases can proceed in parallel:
   - ✅ All producers wired: StoryEventService, NarrativeEventService, challenge resolution, generation
   - ✅ WebSocketEventSubscriber maps AppEvents to ServerMessages
   - ✅ Ready for multiple subscribers (analytics, audit, timeline projectors)
+  - ✅ **Session-scoped routing**: `AppEvent` includes optional `session_id`, `WebSocketEventSubscriber` routes by session (2025-12-15)
   - See `plans/event_bus_architecture.md` for full documentation
 
 - [ ] **3.1.3** Implement use case traits in application services
@@ -916,10 +936,16 @@ With Phase 19 complete, these phases can proceed in parallel:
 ```
 MainMenu → RoleSelect → WorldSelect → GameView
                             ↓
-                DM: Create/Continue World
-                Player: Join Existing World
-                Spectator: Watch Existing World
+                DM: Start/Continue Session (deterministic session_id)
+                Player: Join Active Session (from session list)
+                Spectator: Watch Active Session (from session list)
 ```
+
+**Key Features** (Updated 2025-12-15):
+- ✅ **Stable User Identity**: Player uses persistent `user_id` from local storage (generated once, reused across sessions)
+- ✅ **Deterministic Sessions**: DM sessions use `DM_ID_WORLD_ID` format, allowing "continue session" functionality
+- ✅ **Session Discovery**: Players/Spectators see active sessions grouped by world, not just world list
+- ✅ **Session HTTP APIs**: `GET /api/sessions` lists active sessions, `POST /api/worlds/{id}/sessions` creates/resumes DM sessions
 
 **Tasks**:
 
@@ -1849,3 +1875,5 @@ A task is complete when:
 | 2025-12-15 | **Phase 20A (Unified Generation Queue Core)**: Routed LLM suggestions through `LLMReasoningQueue`, implemented suggestion processing in `LLMQueueService`, added `GenerationEvent::Suggestion*` and corresponding `ServerMessage::Suggestion*` WebSocket events, extended Player `GenerationState` to track suggestion tasks, updated `SuggestionButton` to enqueue instead of synchronous HTTP, and updated `GenerationQueuePanel` to show both image batches and suggestion tasks. Phase 20 now **PARTIALLY COMPLETE** (Engine complete, Player core UI implemented; advanced UX pending). |
 | 2025-12-15 | **Event Bus Architecture Implemented**: Full pub/sub infrastructure for cross-cutting system events. Created `EventBusPort<AppEvent>` abstraction with SQLite backend (`SqliteEventBus`, `SqliteAppEventRepository`), `InProcessEventNotifier` + 30s polling for resilience. Defined `AppEvent` DTO with 11 event types (Story, Narrative, Challenge, Generation, Suggestions). Refactored generation pipeline: `GenerationEvent` → `GenerationEventPublisher` → `AppEvent` → `WebSocketEventSubscriber` → `ServerMessage`. Extended all producers: `StoryEventService` (10+ methods), `NarrativeEventService.mark_triggered()`, challenge resolution in websocket, generation/suggestion events. Enhanced `GenerationEvent` with entity context. Both Engine and Player compile. Ready for Redis backend and advanced consumers (analytics, timeline projectors). Comprehensive documentation in `event_bus_architecture.md`. |
 | 2025-12-15 | **Pre-Feature Polish Complete**: Consolidated event bus wiring (eliminated duplicate `SqliteAppEventRepository` creation in main.rs, now stored in `AppState`). Improved `ChallengeResolved.character_id` handling (replaced `CharacterId::new()` placeholder with `"unknown"` string sentinel). Documented known limitations in `event_bus_architecture.md` (character_id limitation, session broadcast scope). Cleaned unused variables/imports in Engine (story_event_routes.rs, asset_service.rs, queue backends) and Player (character_form.rs, location_form.rs, session_message_handler.rs). Annotated intentionally-kept code with `#[allow(dead_code)]` (GameSession methods, SessionManager stats, generation_service field). **Engine warnings reduced from 147 to 137. Player now compiles with ZERO warnings.** Codebase ready for confident feature development. |
+| 2025-12-15 | **Phase 21 (Player Character Creation) COMPLETE**: All phases implemented. **21A-D**: Domain foundation, services, HTTP API, and Player UI complete. **21E**: Scene manager integration - Travel actions update PC location and trigger scene resolution, split party detection with DM notifications, PC View displays location name. **21F**: DM tools - PC management panel, location navigator, character perspective viewer, PC locations widget in Director View. Players can now create characters, choose starting locations, travel between locations, and see location-based scenes. DMs can manage PCs, navigate to any location, and view any character's perspective. |
+| 2025-12-15 | **Phase 21 (Player Character Creation) COMPLETE**: All phases implemented. **21A-D**: Domain foundation, services, HTTP API, and Player UI complete. **21E**: Scene manager integration - Travel actions update PC location and trigger scene resolution, split party detection with DM notifications, PC View displays location name. **21F**: DM tools - PC management panel, location navigator, character perspective viewer, PC locations widget in Director View. Players can now create characters, choose starting locations, travel between locations, and see location-based scenes. DMs can manage PCs, navigate to any location, and view any character's perspective. |
