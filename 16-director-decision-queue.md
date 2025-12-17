@@ -1,8 +1,16 @@
 # Phase 16: Director Decision Queue
 
+**Status**: [x] **COMPLETE** (2025-12-15)
+
 ## Overview
 
 During gameplay, the LLM continuously analyzes player actions and generates responses, tool calls, and challenge suggestions. The Director Decision Queue provides the DM with real-time visibility into all AI decision-making, allowing approval, modification, or rejection of each decision before it affects the game.
+
+**Completion Summary**:
+- ✅ Backend DMApprovalQueue operational
+- ✅ Frontend DecisionQueuePanel integrated into Director Mode sidebar
+- ✅ Approval/rejection functionality implemented
+- ✅ Real-time decision updates via WebSocket
 
 **Key Distinction**:
 - **Generation Queue** (Creator Mode, [Phase 15](./15-unified-generation-queue.md)): Content creation (images, text suggestions)
