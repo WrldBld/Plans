@@ -60,6 +60,23 @@ Navigation creates the physical framework for storytelling. Players explore the 
 - [ ] **US-NAV-010**: As a player, I can see a mini-map of the current location with clickable regions
   - *Notes*: Region `map_bounds` fields exist for clickable areas, UI not implemented
 
+### Future Improvements
+
+- [ ] **US-NAV-011**: As a DM, I can set travel time between regions/locations
+  - *Design*: Add `travel_time_minutes` to `CONNECTED_TO_REGION` and `EXITS_TO_LOCATION` edges
+  - *Effect*: Triggers game time advancement, opportunity for random encounters
+  - *Priority*: Medium - adds realism and gameplay opportunity
+
+- [ ] **US-NAV-012**: As a DM, I can create party formations for coordinated exploration
+  - *Design*: New `Party` entity linking PCs, leader designation, formation rules
+  - *Effect*: Coordinated movement, split party handled automatically
+  - *Priority*: Low - complex feature, current independent PC model works
+
+- [ ] **US-NAV-013**: As a player, I can see where my party members are on a map
+  - *Design*: DM-controlled party visibility, mini-map with PC icons
+  - *Effect*: Better coordination without revealing all information
+  - *Priority*: Low - depends on party formation feature
+
 ---
 
 ## UI Mockups

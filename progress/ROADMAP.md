@@ -74,17 +74,35 @@ This document tracks implementation progress and remaining work. For detailed sy
 
 ### Tier 5: Future Features - NOT STARTED
 
-#### 5.1 Tactical Combat
+#### 5.1 Game Design Improvements
+These improvements enhance existing systems without adding major new features:
+
+**Navigation Enhancements**
+- [ ] Travel time between regions/locations (triggers game time, random encounters)
+- [ ] Party formation mechanics for coordinated exploration
+- [ ] Party member location visibility on mini-map
+
+**NPC Schedule Improvements**
+- [ ] Multi-slot schedules for NPCs (e.g., 9am-5pm shop, 6pm-10pm tavern)
+- [ ] Daily timeline visualization for schedule planning
+
+**Challenge System Improvements**
+- [ ] Region-level challenge binding (schema exists, needs UI/service integration)
+- [ ] Context-aware challenge suggestions in Director Mode
+
+See individual system documents for detailed user stories.
+
+#### 5.2 Tactical Combat
 - Combat service (turn order, movement, attack resolution)
 - Combat WebSocket messages
 - Grid renderer
 - Combat UI
 
-#### 5.2 Audio System
+#### 5.3 Audio System
 - Audio manager (music, SFX, volume)
 - Scene audio integration
 
-#### 5.3 Save/Load System
+#### 5.4 Save/Load System
 - Save file format
 - Save/Load endpoints
 - Save/Load UI

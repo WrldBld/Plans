@@ -59,6 +59,19 @@ Challenges create dramatic tension and player agency. Key design principles:
 - [ ] **US-CHAL-009**: As a player, I can see my character's skill modifiers during rolls
   - *Notes*: SkillsDisplay component exists but may need integration work
 
+### Future Improvements
+
+- [ ] **US-CHAL-010**: As a DM, I can bind challenges to specific regions (not just locations)
+  - *Design*: Add `AVAILABLE_AT_REGION` edge alongside existing `AVAILABLE_AT_LOCATION`
+  - *Effect*: More granular challenge placement (e.g., "Lockpick Back Room Door" only in "Back Room" region)
+  - *Current State*: `AVAILABLE_AT_REGION` edge defined in schema but not fully used
+  - *Priority*: Medium - enables location-specific puzzles
+
+- [ ] **US-CHAL-011**: As a DM, I can see which challenges are available in the current region
+  - *Design*: RegionScene includes available challenges based on both location and region edges
+  - *Effect*: Context-aware challenge suggestions in Director Mode
+  - *Priority*: Low - UI enhancement
+
 ---
 
 ## UI Mockups

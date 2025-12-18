@@ -58,6 +58,19 @@ This system creates a living world without the complexity of AI pathfinding or s
 - [ ] **US-NPC-009**: As a player, I see location events as narrative text
   - *Notes*: Engine sends `LocationEvent`, Player UI needs event display
 
+### Future Improvements
+
+- [ ] **US-NPC-010**: As a DM, I can define multi-slot schedules for NPCs
+  - *Design*: Replace single `time_of_day` with `schedule: Vec<ScheduleSlot>` where each slot has `start_hour`, `end_hour`, `days_of_week`
+  - *Effect*: NPCs can change locations throughout the day (e.g., merchant opens shop at 9am, goes to tavern at 6pm, home at 10pm)
+  - *Current Limitation*: Single `time_of_day` only supports one slot per relationship
+  - *Priority*: Medium - adds realism for recurring NPCs
+
+- [ ] **US-NPC-011**: As a DM, I can preview NPC schedules as a daily timeline
+  - *Design*: Visual timeline showing where each NPC is during each time slot
+  - *Effect*: Easier schedule planning, conflict detection
+  - *Priority*: Low - depends on multi-slot schedule feature
+
 ---
 
 ## UI Mockups
