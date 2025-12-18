@@ -2,10 +2,15 @@
 
 This document tracks all remaining work identified during the codebase analysis. Sub-agents should use this to understand context, track progress, and coordinate implementation.
 
-**Last Updated**: 2025-12-15
-**Overall Progress**: Core gameplay complete; Queue System complete; **Code Review Fixes Complete**; **Suggestion Queue Integration Complete**; **Phase 20 (Unified Generation Queue UI) COMPLETE** ✅; **Phase 16 (Director Decision Queue) COMPLETE** ✅; **Pre-Feature Polish Complete**; **Anonymous Users & Session Management Complete**; **Phase 21 (Player Character Creation) COMPLETE** ✅; **Phase 18 (ComfyUI Enhancements) COMPLETE** ✅
+**Last Updated**: 2025-12-17
+**Overall Progress**: Core gameplay complete; Queue System complete; **Code Review Fixes Complete**; **Suggestion Queue Integration Complete**; **Phase 20 (Unified Generation Queue UI) COMPLETE** ✅; **Phase 16 (Director Decision Queue) COMPLETE** ✅; **Pre-Feature Polish Complete**; **Anonymous Users & Session Management Complete**; **Phase 21 (Player Character Creation) COMPLETE** ✅; **Phase 18 (ComfyUI Enhancements) COMPLETE** ✅; **Phase 22 Prerequisites** (4 of 5 COMPLETE) ✅
 
-**Current Priority**: Architecture & Quality improvements (Tier 3) or Future Features (Tier 5)
+**Current Priority**: Phase 22 (Core Game Loop) - 1 prerequisite remaining (P1.5 code duplication)
+
+**Code Validation Status** (2025-12-17):
+- ✅ All major feature claims verified against actual code
+- ✅ Architecture violations P1.1-P1.4 have been FIXED
+- ⚠️ Minor documentation corrections applied (test counts, file locations)
 
 **Key Updates** (2025-12-15):
 - ✅ Phase 19 fully implemented and code review issues resolved
@@ -178,9 +183,9 @@ Phase 19 is now **COMPLETE** (2025-12-15). All queue infrastructure is operation
 
 - [✅] **1.1.3** Implement tool calling support (2025-12-11)
   - File: `Engine/src/domain/value_objects/game_tools.rs` (new)
-  - Defined `GameTool` enum: GiveItem, RevealInfo, ChangeRelationship, TriggerEvent
+  - Defined `GameTool` enum: GiveItem, RevealInfo, ChangeRelationship, TriggerEvent (now 11 variants)
   - Added tool parsing and validation in llm_service.rs
-  - 19 unit tests for tool handling
+  - 3 unit tests in game_tools.rs, 9 tests in tool_execution_service.rs
 
 - [✅] **1.1.4** Send ApprovalRequired to DM (2025-12-11)
   - File: `Engine/src/infrastructure/websocket.rs`
@@ -189,11 +194,10 @@ Phase 19 is now **COMPLETE** (2025-12-15). All queue infrastructure is operation
   - Sends LLMProcessing notification to DM
 
 - [✅] **1.1.5** Handle conversation history (2025-12-11)
-  - File: `Engine/src/infrastructure/session.rs`
-  - Added `ConversationTurn` struct with speaker, content, timestamp
-  - Added history management methods with 30-turn limit
-  - 9 unit tests for conversation history
-  - Include in LLM context
+  - File: `Engine/src/domain/value_objects/llm_context.rs` (ConversationTurn struct)
+  - `ConversationTurn` struct with speaker, content, timestamp
+  - History management methods with 30-turn limit
+  - Included in LLM context via GamePromptRequest
 
 **Dependencies**: None (can start immediately)
 
@@ -483,7 +487,7 @@ Phase 19 is now **COMPLETE** (2025-12-15). All queue infrastructure is operation
   - `QueueItem<T>`, `QueueItemStatus`, `QueueError`
 
 - [✅] **19A.2** Create queue item types (2025-12-14)
-  - File: `Engine/src/domain/value_objects/queue_items.rs` (NEW)
+  - File: `Engine/src/application/dto/queue_items.rs` (application DTOs, not domain)
   - `QueueItemId`, `PlayerActionItem`, `DMActionItem`, `LLMRequestItem`, `AssetGenerationItem`, `ApprovalItem`
 
 - [✅] **19A.3** Implement InMemoryQueue (2025-12-14)
