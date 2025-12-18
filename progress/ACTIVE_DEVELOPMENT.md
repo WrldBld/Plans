@@ -2,7 +2,7 @@
 
 Active implementation tracking for WrldBldr user stories.
 
-**Current Phase**: Phase A - Core Player Experience (COMPLETE)  
+**Current Phase**: Phase B - Player Knowledge & Agency (COMPLETE)  
 **Last Updated**: 2025-12-18
 
 ---
@@ -12,8 +12,8 @@ Active implementation tracking for WrldBldr user stories.
 | Phase | Focus | Status | Est. Effort |
 |-------|-------|--------|-------------|
 | A | Core Player Experience | **COMPLETE** | 3-4 days |
-| B | Player Knowledge & Agency | **NEXT** | 4-5 days |
-| C | DM Tools & Advanced Features | Pending | 5-7 days |
+| B | Player Knowledge & Agency | **COMPLETE** | 4-5 days |
+| C | DM Tools & Advanced Features | **NEXT** | 5-7 days |
 
 ---
 
@@ -23,70 +23,9 @@ All Phase A stories have been implemented. See Completed section for details.
 
 ---
 
-## Phase B: Player Knowledge & Agency
+## Phase B: Player Knowledge & Agency - COMPLETE
 
-Enhance player information and interaction capabilities.
-
-### US-OBS-004/005: Known NPCs Panel
-
-| Field | Value |
-|-------|-------|
-| **Status** | Not Started |
-| **Priority** | Medium |
-| **Effort** | 2 days |
-| **System** | [Observation](../systems/observation-system.md) |
-
-**Description**: Player view of observed NPCs with last seen info.
-
-**Implementation Notes**:
-- Engine: Complete (observation endpoints exist)
-- Player: Not started
-- Create `KnownNpcsPanel` component
-- Query observations endpoint
-- Show observation type icons (direct/heard/deduced)
-- Display last seen location and game time
-
----
-
-### US-CHAR-009: Inventory Panel
-
-| Field | Value |
-|-------|-------|
-| **Status** | Not Started |
-| **Priority** | Medium |
-| **Effort** | 1.5 days |
-| **System** | [Character](../systems/character-system.md) |
-
-**Description**: Player inventory with equipped items and actions.
-
-**Implementation Notes**:
-- Engine: Complete (`POSSESSES` edges exist)
-- Player: Button placeholder only
-- Create `InventoryPanel` component
-- Fetch items via PC endpoint
-- Show equipped status, quantity
-- Wire up use/drop/equip actions
-
----
-
-### US-NAV-010: Mini-map with Clickable Regions
-
-| Field | Value |
-|-------|-------|
-| **Status** | Not Started |
-| **Priority** | Medium |
-| **Effort** | 1.5 days |
-| **System** | [Navigation](../systems/navigation-system.md) |
-
-**Description**: Visual map showing regions with click-to-navigate.
-
-**Implementation Notes**:
-- Engine: Complete (region bounds data exists)
-- Player: Not started
-- Create `MiniMap` component
-- Render region bounds as clickable areas
-- Highlight current region
-- Click region to navigate
+All Phase B stories have been implemented. See Completed section for details.
 
 ---
 
@@ -180,6 +119,70 @@ Improve DM workflow. These don't block player gameplay.
 ## Completed
 
 Stories moved here when fully implemented.
+
+### US-CHAR-009: Inventory Panel
+
+| Field | Value |
+|-------|-------|
+| **Completed** | 2025-12-18 |
+| **System** | [Character](../systems/character-system.md) |
+
+**Implementation**: Full inventory panel with item categories and actions.
+- Engine: `GET /api/characters/{id}/inventory` endpoint
+- Player: `InventoryPanel` component with category tabs (All/Equipped/Consumables/Key)
+- `ItemData`, `InventoryItemData` DTOs
+- `get_inventory()` on CharacterService
+- Use item action wired to player actions
+
+**Files**:
+- `Engine/src/application/dto/item.rs`
+- `Player/src/presentation/components/inventory_panel.rs`
+- `Player/src/application/services/character_service.rs`
+- `Player/src/application/dto/world_snapshot.rs`
+
+---
+
+### US-OBS-004/005: Known NPCs Panel
+
+| Field | Value |
+|-------|-------|
+| **Completed** | 2025-12-18 |
+| **System** | [Observation](../systems/observation-system.md) |
+
+**Implementation**: Panel showing observed NPCs with last seen info.
+- `KnownNpcsPanel` component with observation cards
+- `ObservationService` with `list_observations()` method
+- Observation type icons (direct/heard/deduced)
+- Display last seen location and game time
+- Click NPC to initiate talk action
+
+**Files**:
+- `Player/src/presentation/components/known_npcs_panel.rs`
+- `Player/src/application/services/observation_service.rs`
+- `Player/src/presentation/views/pc_view.rs`
+
+---
+
+### US-NAV-010: Mini-map with Clickable Regions
+
+| Field | Value |
+|-------|-------|
+| **Completed** | 2025-12-18 |
+| **System** | [Navigation](../systems/navigation-system.md) |
+
+**Implementation**: Visual map with clickable region overlays.
+- `MiniMap` component with map image overlay and grid fallback
+- `MapRegionData`, `MapBounds` types for region positioning
+- `get_regions()` on LocationService
+- Click navigable region to move
+- Legend showing current/available/locked regions
+
+**Files**:
+- `Player/src/presentation/components/mini_map.rs`
+- `Player/src/application/services/location_service.rs`
+- `Player/src/presentation/views/pc_view.rs`
+
+---
 
 ### US-NAV-008: Navigation Options UI
 
@@ -314,3 +317,7 @@ Stories moved here when fully implemented.
 | 2025-12-18 | - | US-CHAL-009 | Marked complete (already implemented) |
 | 2025-12-18 | - | US-DLG-009 | Marked complete (already implemented) |
 | 2025-12-18 | - | - | Created ACTIVE_DEVELOPMENT.md |
+| 2025-12-18 | B | US-CHAR-009 | Implemented inventory panel with item categories |
+| 2025-12-18 | B | US-OBS-004/005 | Implemented known NPCs panel with observations |
+| 2025-12-18 | B | US-NAV-010 | Implemented mini-map with clickable regions |
+| 2025-12-18 | B | - | **Phase B Complete** |
