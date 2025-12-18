@@ -44,6 +44,7 @@ Technical reference for developers.
 |----------|-------------|
 | [MVP](progress/MVP.md) | Project vision, acceptance criteria |
 | [Roadmap](progress/ROADMAP.md) | Remaining work, priority tiers |
+| [Active Development](progress/ACTIVE_DEVELOPMENT.md) | Current phase tracking, user story status |
 
 ---
 
