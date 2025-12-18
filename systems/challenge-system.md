@@ -54,10 +54,9 @@ Challenges create dramatic tension and player agency. Key design principles:
   - *Implementation*: ChallengeLibrary with search, filtering, favorites
   - *Files*: `Player/src/presentation/components/dm_panel/challenge_library/`
 
-### Pending
-
-- [ ] **US-CHAL-009**: As a player, I can see my character's skill modifiers during rolls
-  - *Notes*: SkillsDisplay component exists but may need integration work
+- [x] **US-CHAL-009**: As a player, I can see my character's skill modifiers during rolls
+  - *Implementation*: SkillsDisplay component shows all skills with modifiers; ChallengeRollModal displays modifier in header and result breakdown (dice + modifier + skill = total)
+  - *Files*: `Player/src/presentation/components/tactical/challenge_roll.rs`, `Player/src/presentation/components/tactical/skills_display.rs`
 
 ### Future Improvements
 

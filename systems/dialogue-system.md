@@ -54,10 +54,9 @@ This is the heart of the AI game master experience:
   - *Implementation*: LLMProcessing WebSocket message, UI shows animated indicator
   - *Files*: `Player/src/presentation/views/pc_view.rs`
 
-### Pending
-
-- [ ] **US-DLG-009**: As a DM, I can configure token budgets per context category
-  - *Notes*: ContextBudgetConfig exists but no UI for configuration
+- [x] **US-DLG-009**: As a DM, I can configure token budgets per context category
+  - *Implementation*: Settings API at `/api/settings` and `/api/worlds/{world_id}/settings` exposes all 10 ContextBudgetConfig fields; metadata endpoint provides field descriptions for UI rendering
+  - *Files*: `Engine/src/domain/value_objects/context_budget.rs`, `Engine/src/infrastructure/http/settings_routes.rs`
 
 ---
 
