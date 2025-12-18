@@ -2,7 +2,7 @@
 
 Active implementation tracking for WrldBldr user stories.
 
-**Current Phase**: Phase A - Core Player Experience  
+**Current Phase**: Phase A - Core Player Experience (COMPLETE)  
 **Last Updated**: 2025-12-18
 
 ---
@@ -11,94 +11,15 @@ Active implementation tracking for WrldBldr user stories.
 
 | Phase | Focus | Status | Est. Effort |
 |-------|-------|--------|-------------|
-| A | Core Player Experience | **ACTIVE** | 3-4 days |
-| B | Player Knowledge & Agency | Pending | 4-5 days |
+| A | Core Player Experience | **COMPLETE** | 3-4 days |
+| B | Player Knowledge & Agency | **NEXT** | 4-5 days |
 | C | DM Tools & Advanced Features | Pending | 5-7 days |
 
 ---
 
-## Phase A: Core Player Experience
+## Phase A: Core Player Experience - COMPLETE
 
-Critical features for basic player gameplay. These complete the core gameplay loop.
-
-### US-NAV-008: Navigation Options UI
-
-| Field | Value |
-|-------|-------|
-| **Status** | Not Started |
-| **Priority** | Critical (blocking gameplay) |
-| **Effort** | 1 day |
-| **System** | [Navigation](../systems/navigation-system.md) |
-
-**Description**: Player UI buttons for region movement and location exits.
-
-**Implementation Notes**:
-- Engine: Complete (WebSocket handlers for `MoveToRegion`, `ExitToLocation`)
-- Player: Not started
-- Create `NavigationPanel` component
-- Add to `pc_view.rs` action panel area
-- Wire up WebSocket messages
-- Show locked/unlocked states
-
----
-
-### US-NAV-009: Game Time Display
-
-| Field | Value |
-|-------|-------|
-| **Status** | Not Started |
-| **Priority** | High |
-| **Effort** | 0.5 days |
-| **System** | [Navigation](../systems/navigation-system.md) |
-
-**Description**: Display current in-game time to players.
-
-**Implementation Notes**:
-- Engine: Complete (`GameTimeUpdated` WebSocket message)
-- Player: Not started
-- Create `GameTimeDisplay` component
-- Add `current_game_time` to session state
-- Update from `GameTimeUpdated` handler
-
----
-
-### US-NPC-008: Approach Event Display
-
-| Field | Value |
-|-------|-------|
-| **Status** | Partial |
-| **Priority** | High |
-| **Effort** | 0.5 days |
-| **System** | [NPC](../systems/npc-system.md) |
-
-**Description**: Visual notification when NPC approaches player.
-
-**Implementation Notes**:
-- Engine: Complete
-- Player: Logs to conversation, needs visual overlay
-- Create `ApproachEventOverlay` component
-- Show NPC sprite sliding in with description
-- Add "Continue" button to dismiss
-
----
-
-### US-NPC-009: Location Event Display
-
-| Field | Value |
-|-------|-------|
-| **Status** | Partial |
-| **Priority** | High |
-| **Effort** | 0.5 days |
-| **System** | [NPC](../systems/npc-system.md) |
-
-**Description**: Visual notification for location-wide events.
-
-**Implementation Notes**:
-- Engine: Complete
-- Player: Logs to conversation, needs event banner
-- Create `LocationEventBanner` component
-- Styled narrative overlay
-- Auto-dismiss or click to dismiss
+All Phase A stories have been implemented. See Completed section for details.
 
 ---
 
@@ -260,6 +181,91 @@ Improve DM workflow. These don't block player gameplay.
 
 Stories moved here when fully implemented.
 
+### US-NAV-008: Navigation Options UI
+
+| Field | Value |
+|-------|-------|
+| **Completed** | 2025-12-18 |
+| **System** | [Navigation](../systems/navigation-system.md) |
+
+**Implementation**: Full navigation UI for region movement and location exits.
+- `NavigationPanel` modal component with region/exit buttons
+- `NavigationButtons` compact inline variant
+- `move_to_region()` and `exit_to_location()` on GameConnectionPort
+- Region buttons show locked/unlocked state
+- Map button in action panel opens navigation modal
+
+**Files**:
+- `Player/src/presentation/components/navigation_panel.rs`
+- `Player/src/presentation/state/game_state.rs`
+- `Player/src/application/ports/outbound/game_connection_port.rs`
+- `Player/src/infrastructure/websocket/game_connection_adapter.rs`
+
+---
+
+### US-NAV-009: Game Time Display
+
+| Field | Value |
+|-------|-------|
+| **Completed** | 2025-12-18 |
+| **System** | [Navigation](../systems/navigation-system.md) |
+
+**Implementation**: Game time display with time-of-day icons.
+- `GameTimeDisplay` component shows current time with icons
+- `GameTimeData` struct with display, time_of_day, is_paused
+- Updates from `GameTimeUpdated` WebSocket message
+- Shows pause indicator when time is stopped
+
+**Files**:
+- `Player/src/presentation/components/navigation_panel.rs` (GameTimeDisplay)
+- `Player/src/presentation/state/game_state.rs` (GameTimeData)
+- `Player/src/presentation/handlers/session_message_handler.rs`
+
+---
+
+### US-NPC-008: Approach Event Display
+
+| Field | Value |
+|-------|-------|
+| **Completed** | 2025-12-18 |
+| **System** | [NPC](../systems/npc-system.md) |
+
+**Implementation**: Visual overlay when NPC approaches player.
+- `ApproachEventOverlay` modal component
+- Shows NPC sprite (if available) with description
+- "Continue" button to dismiss
+- `ApproachEventData` in game state
+- Triggered by `ApproachEvent` WebSocket message
+
+**Files**:
+- `Player/src/presentation/components/event_overlays.rs`
+- `Player/src/presentation/state/game_state.rs`
+- `Player/src/presentation/handlers/session_message_handler.rs`
+- `Player/src/presentation/views/pc_view.rs`
+
+---
+
+### US-NPC-009: Location Event Display
+
+| Field | Value |
+|-------|-------|
+| **Completed** | 2025-12-18 |
+| **System** | [NPC](../systems/npc-system.md) |
+
+**Implementation**: Banner notification for location-wide events.
+- `LocationEventBanner` component at top of screen
+- Click anywhere to dismiss
+- `LocationEventData` in game state
+- Triggered by `LocationEvent` WebSocket message
+
+**Files**:
+- `Player/src/presentation/components/event_overlays.rs`
+- `Player/src/presentation/state/game_state.rs`
+- `Player/src/presentation/handlers/session_message_handler.rs`
+- `Player/src/presentation/views/pc_view.rs`
+
+---
+
 ### US-CHAL-009: Skill Modifiers Display During Rolls
 
 | Field | Value |
@@ -300,6 +306,11 @@ Stories moved here when fully implemented.
 
 | Date | Phase | Story | Change |
 |------|-------|-------|--------|
+| 2025-12-18 | A | US-NAV-008 | Implemented navigation panel with region/exit buttons |
+| 2025-12-18 | A | US-NAV-009 | Implemented game time display with time-of-day icons |
+| 2025-12-18 | A | US-NPC-008 | Implemented approach event overlay for NPC approaches |
+| 2025-12-18 | A | US-NPC-009 | Implemented location event banner for location events |
+| 2025-12-18 | A | - | **Phase A Complete** |
 | 2025-12-18 | - | US-CHAL-009 | Marked complete (already implemented) |
 | 2025-12-18 | - | US-DLG-009 | Marked complete (already implemented) |
 | 2025-12-18 | - | - | Created ACTIVE_DEVELOPMENT.md |
