@@ -128,6 +128,53 @@ AI-generated art enhances immersion:
 
 **Status**: ✅ Implemented
 
+### Advanced Workflow Parameter Editor
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  Workflow: Portrait Generator (portrait slot)                       [Save]  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ─── Prompt Mappings ───────────────────────────────────────────────────── │
+│  Map entity data to workflow input nodes:                                   │
+│                                                                             │
+│  ┌───────────────────────────────────────────────────────────────────────┐ │
+│  │ Node: "CLIPTextEncode.positive"                                       │ │
+│  │ Source: [Entity Description ▼]                                        │ │
+│  │ Template: "{description}, portrait, detailed face, high quality"      │ │
+│  └───────────────────────────────────────────────────────────────────────┘ │
+│                                                                             │
+│  ┌───────────────────────────────────────────────────────────────────────┐ │
+│  │ Node: "CLIPTextEncode.negative"                                       │ │
+│  │ Source: [Static Text ▼]                                               │ │
+│  │ Template: "blurry, low quality, deformed"                             │ │
+│  └───────────────────────────────────────────────────────────────────────┘ │
+│                                                                             │
+│  [+ Add Mapping]                                                            │
+│                                                                             │
+│  ─── Locked Inputs ─────────────────────────────────────────────────────── │
+│  Parameters that should not change:                                         │
+│                                                                             │
+│  ┌───────────────────────────────────────────────────────────────────────┐ │
+│  │ KSampler.steps: 30            KSampler.cfg: 7.5                       │ │
+│  │ KSampler.sampler: "euler"     EmptyLatentImage.width: 512             │ │
+│  │ EmptyLatentImage.height: 512                                          │ │
+│  └───────────────────────────────────────────────────────────────────────┘ │
+│                                                                             │
+│  ─── Style Reference ───────────────────────────────────────────────────── │
+│  ┌───────────────────────────────────────────────────────────────────────┐ │
+│  │ Detection: [Auto-detect IPAdapter ▼]                                  │ │
+│  │ Found node: IPAdapterApply at position 5                              │ │
+│  └───────────────────────────────────────────────────────────────────────┘ │
+│                                                                             │
+│  ─── Raw JSON ──────────────────────────────────────────────────────────── │
+│  [▶ Show Raw Workflow JSON]                                                 │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Status**: ⏳ Pending (US-AST-010 - basic workflow config exists)
+
 ---
 
 ## Data Model
